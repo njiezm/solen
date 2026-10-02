@@ -2,7 +2,6 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 
 /**
  * Plus aucune formule gratuite. Les mariages créés en « Découverte » passent
@@ -21,15 +20,13 @@ return new class extends Migration
             DB::table('plans')->where('id', $id)->delete();
         }
 
-        Schema::table('events', function ($table) {
-            $table->string('plan')->default('essentiel')->change();
-        });
+        // SQL direct plutôt que ->change() : Laravel y ajoute « drop identity
+        // if exists », inconnu des PostgreSQL antérieurs à la version 10.
+        DB::statement("ALTER TABLE events ALTER COLUMN plan SET DEFAULT 'essentiel'");
     }
 
     public function down(): void
     {
-        Schema::table('events', function ($table) {
-            $table->string('plan')->default('decouverte')->change();
-        });
+        DB::statement("ALTER TABLE events ALTER COLUMN plan SET DEFAULT 'decouverte'");
     }
 };

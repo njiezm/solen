@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 /**
@@ -31,8 +32,11 @@ return new class extends Migration
             $table->index(['event_id', 'points']);
         });
 
+        // SQL direct plutôt que ->change() : compatible avec les PostgreSQL
+        // antérieurs à la version 10, comme celui de la production.
+        DB::statement('ALTER TABLE questions_qui_deux ALTER COLUMN bonne_reponse DROP NOT NULL');
+
         Schema::table('questions_qui_deux', function (Blueprint $table) {
-            $table->string('bonne_reponse')->nullable()->change();
             $table->unsignedSmallInteger('ordre')->default(0);
         });
     }
