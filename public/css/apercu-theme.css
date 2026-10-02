@@ -1,0 +1,27 @@
+/* Aperçu réel d'un thème : partagé par l'espace des mariés et la vitrine. */
+
+.apercu-theme {
+    display: grid; grid-template-rows: auto 1fr; overflow: hidden;
+    aspect-ratio: 4 / 3; border-radius: 12px; border: 1px solid var(--a-bord);
+    background: var(--a-page); color: var(--a-sur-page); font-family: var(--a-texte);
+}
+.apercu-bandeau {
+    display: grid; justify-items: center; gap: .25rem; padding: .9rem .6rem .7rem;
+    background: var(--a-fort); color: var(--a-sur-fort); text-align: center;
+}
+.apercu-noms { font-family: var(--a-titre); font-size: 1.25rem; line-height: 1.1; letter-spacing: var(--a-lettrage); text-transform: var(--a-capitales); }
+.apercu-filet { width: 26px; height: 2px; background: var(--a-accent); border-radius: 2px; }
+.apercu-fleuron { color: var(--a-accent); font-size: .8rem; line-height: 1; }
+.apercu-date { font-size: .55rem; letter-spacing: .2em; text-transform: uppercase; opacity: .8; }
+.apercu-corps { display: grid; grid-template-columns: 1fr 1fr; gap: .4rem; padding: .55rem; align-content: start; }
+.apercu-tuile {
+    display: flex; align-items: center; gap: .35rem; padding: .4rem .45rem;
+    border-radius: min(var(--a-r-carte), 10px); border: 1px solid var(--a-bord);
+    background: var(--a-carte); color: var(--a-sur-carte); font-size: .62rem; font-weight: 600;
+}
+.apercu-tuile i { color: var(--a-accent-texte); }
+.apercu-bouton {
+    grid-column: 1 / -1; justify-self: center; padding: .3rem 1.1rem; border-radius: var(--a-r-bouton);
+    background: var(--a-accent); color: var(--a-sur-accent); font-size: .66rem; font-weight: 700;
+}
+

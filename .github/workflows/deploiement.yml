@@ -1,0 +1,87 @@
+name: Déploiement
+
+# Se déclenche à chaque push sur main, et manuellement depuis l'onglet
+# Actions quand on veut redéployer sans nouveau commit.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  # Deux déploiements simultanés joueraient les migrations en parallèle.
+  group: deploiement-production
+  cancel-in-progress: false
+
+jobs:
+
+  # ── 1. Contrôles avant de toucher au serveur ─────────────────────────
+  controles:
+    name: Contrôles
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Installer PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, pdo_pgsql, gd, zip
+          coverage: none
+
+      - name: Dépendances
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Syntaxe PHP
+        run: find app config database routes -name '*.php' -print0 | xargs -0 -n1 php -l
+
+      - name: Style de code
+        run: vendor/bin/pint --test
+        continue-on-error: true
+
+      - name: Vues Blade compilables
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+          php artisan view:cache
+        env:
+          DB_CONNECTION: sqlite
+          DB_DATABASE: ':memory:'
+
+      - name: Tests
+        run: php artisan test
+        env:
+          DB_CONNECTION: sqlite
+          DB_DATABASE: ':memory:'
+
+  # ── 2. Déploiement ───────────────────────────────────────────────────
+  deployer:
+    name: Déployer en production
+    needs: controles
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Lancer le déploiement sur le serveur
+        uses: appleboy/ssh-action@v1
+        with:
+          host:     ${{ secrets.SSH_HOTE }}
+          username: ${{ secrets.SSH_UTILISATEUR }}
+          key:      ${{ secrets.SSH_CLE }}
+          port:     ${{ secrets.SSH_PORT || 22 }}
+          script_stop: true
+          script: |
+            cd ${{ secrets.CHEMIN_APPLICATION }}
+            chmod +x deploy.sh
+            ./deploy.sh main
+
+      - name: Vérifier que le site répond
+        run: |
+          for i in 1 2 3 4 5 6; do
+            code=$(curl -s -o /dev/null -w '%{http_code}' "${{ secrets.URL_APPLICATION }}")
+            [ "$code" = "200" ] && echo "Site en ligne (HTTP $code)" && exit 0
+            echo "Tentative $i : HTTP $code"
+            sleep 10
+          done
+          echo "Le site ne répond pas correctement après le déploiement."
+          exit 1

@@ -1,0 +1,2047 @@
+/* =========================================================================
+   mariage.css — feuille de style du site invité
+   ------------------------------------------------------------------------
+   Les couleurs ne sont plus figées : elles proviennent du thème choisi par
+   les mariés, injecté en variables --theme-* sur la balise <body> par
+   Event::styleInline(). Les noms historiques (--vert-sapin, --dore-accent)
+   sont conservés pour ne pas réécrire les 1300 lignes qui suivent : ce sont
+   désormais des alias du thème, avec les valeurs d'origine en repli.
+   ========================================================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Great+Vibes&family=Playfair+Display:wght@400;600;700&family=Montserrat:wght@400;600;700&family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Inter:wght@400;600;700&family=Cormorant+Garamond:wght@400;600&family=Lora:wght@400;600&display=swap');
+
+/* Repli : ce que voit un mariage sans thème. */
+:root {
+    --vert-sapin:       #013220;
+    --champagne-clair:  #f9f8f4;
+    --dore-accent:      #b55239;
+    --vert-tres-clair:  #e6f0ea;
+    --font-pro:         'Montserrat', sans-serif;
+    --font-elegant:     'Great Vibes', cursive;
+}
+
+/*
+   Les alias sont redéfinis sur body, et non sur :root, parce que c'est là
+   que les variables du thème sont posées — une variable ne remonte pas
+   vers son ancêtre.
+*/
+body {
+    --vert-sapin:      var(--theme-ink,     #013220);
+    --champagne-clair: var(--theme-surface, #f9f8f4);
+    --dore-accent:     var(--theme-accent,  #b55239);
+    --secondaire:      var(--theme-secondaire, var(--dore-accent));
+
+    /* Teinte claire dérivée du thème : un voile d'encre sur le fond. */
+    --vert-tres-clair: color-mix(in srgb,
+                           var(--theme-ink, #013220) 10%,
+                           var(--theme-surface, #f9f8f4));
+
+    --font-elegant: var(--theme-display, 'Great Vibes', cursive);
+    --font-pro:     var(--theme-body,    'Montserrat', sans-serif);
+
+    /* Formes : un thème anguleux et un thème arrondi ne se ressemblent pas,
+       même à couleurs identiques. */
+    --r-carte:  var(--theme-r-carte,  15px);
+    --r-bouton: var(--theme-r-bouton, 50px);
+    --r-image:  var(--theme-r-image,  12px);
+
+    /* Caractère typographique. */
+    --lettrage:  var(--theme-lettrage,  .02em);
+    --capitales: var(--theme-capitales, none);
+    --graisse:   var(--theme-graisse,   600);
+
+    /* Respiration : multiplie les espacements des blocs principaux. */
+    --densite: var(--theme-densite, 1);
+
+    /* Le fond de page vient du thème : le déduire de l'encre ne tient pas
+       pour un thème sombre, dont l'encre est claire. */
+    background-color: var(--theme-fond, color-mix(in srgb, var(--theme-ink, #013220) 88%, #000));
+    color: var(--vert-sapin);
+    font-family: var(--font-pro);
+}
+
+.main-content {
+    /* Compensation pour la navbar fixed-top */
+    padding-top: 80px; 
+}
+
+/* --- 1. NAVBAR (Header d'App Pro) --- */
+.navbar {
+    background-color: var(--champagne-clair) !important; 
+    box-shadow: 0 4px 15px rgba(0, 50, 32, 0.1); /* Ombre Verte Légère */
+    padding: 0.75rem 0;
+}
+
+.logo-text {
+    font-family: var(--font-pro);
+    font-weight: 700;
+    font-size: 1.5rem;
+    color: var(--vert-sapin);
+}
+
+.icon-ring {
+    color: var(--dore-accent);
+    margin-left: 5px;
+    font-size: 1.2rem;
+}
+
+/* --- 2. LANDING PAGE (Splash Screen) --- */
+.landing-container {
+    background: linear-gradient(135deg, var(--e6f0ea) 0%, var(--champagne-clair) 100%); 
+    min-height: 100vh;
+    padding: 0;
+    margin-top: -80px; /* Remonte pour prendre toute la hauteur */
+    position: relative;
+    overflow: hidden;
+}
+
+/* Simulation d'un fond texturé/subtil pour la modernité */
+.landing-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: url("data:image/svg+xml,%3Csvg width='6' height='6' viewBox='0 0 6 6' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23013220' fill-opacity='0.03' fill-rule='evenodd'%3E%3Cpath d='M5 0h1L0 6V5zm1 5v1H5z'/%3E%3C/g%3E%3C/svg%3E");
+    z-index: 1;
+}
+
+.splash-card {
+    background-color: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(8px); /* Effet Glassmorphism subtil */
+    border-radius: 30px; /* Très arrondis */
+    box-shadow: 0 20px 50px rgba(0, 50, 32, 0.2);
+    max-width: 450px;
+    width: 90%;
+    z-index: 2;
+    transition: transform 0.5s ease;
+}
+.splash-card:hover {
+    transform: translateY(-5px);
+}
+
+.landing-title {
+    font-family: var(--font-elegant);
+    font-size: 4.5rem; 
+    color: var(--dore-accent); 
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2); 
+    font-weight: 700;
+}
+
+.landing-title i {
+    color: var(--vert-sapin);
+    font-size: 0.8em;
+}
+
+.landing-lead {
+    font-family: var(--font-pro);
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--vert-sapin);
+}
+
+.date-widget {
+    font-family: var(--font-pro);
+    font-weight: 700;
+    font-size: 1.8rem;
+    color: var(--vert-sapin);
+    padding: 0.5rem 1rem;
+    background: var(--vert-tres-clair);
+    border-radius: 10px;
+    display: inline-block;
+    box-shadow: inset 0 1px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* --- BOUTON PRINCIPAL (Pro) --- */
+.btn-pro-primary {
+    background-color: var(--vert-sapin);
+    color: var(--champagne-clair);
+    border-radius: 50px;
+    padding: 0.8rem 2.5rem; 
+    border: none;
+    font-family: var(--font-pro);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: all 0.3s;
+    box-shadow: 0 8px 20px rgba(1, 50, 32, 0.3);
+}
+
+.btn-pro-primary:hover {
+    background-color: var(--dore-accent); /* Changement au doré au survol pour le luxe */
+    color: var(--vert-sapin); 
+    transform: translateY(-2px); 
+    box-shadow: 0 10px 25px rgba(184, 134, 11, 0.4);
+}
+
+/* --- 3. HOME PAGE (Dashboard Pro) --- */
+
+.banner {
+    /*background: var(--vert-sapin); /* Bannière Pleine Couleur Sapin */
+    color: var(--champagne-clair);
+    border-radius: 20px; 
+    padding: 2rem;
+    margin-bottom: 3rem; 
+    box-shadow: 0 10px 30px rgba(0, 50, 32, 0.4); /* Ombre forte */
+    text-align: center;
+}
+
+.banner h2 {
+    font-family: var(--font-elegant);
+    color: var(--dore-accent); 
+    font-size: 3rem;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.banner p {
+    font-family: var(--font-pro);
+    font-size: 1.1rem;
+    font-weight: 400;
+}
+.banner strong {
+    color: var(--dore-accent);
+    font-weight: 700;
+    font-size: 1.2em;
+}
+
+/* --- CARTES DE NAVIGATION (Tuiles d'App) --- */
+.card-wedding {
+    background-color: var(--champagne-clair); 
+    border: 1px solid var(--vert-tres-clair); 
+    border-radius: 15px; /* Moins arrondis que le splash pour le contraste */
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+    overflow: hidden; 
+}
+.card-wedding:hover {
+    transform: scale(1.03); /* Léger zoom */
+    box-shadow: 0 12px 30px rgba(0, 50, 32, 0.15); 
+    border-color: var(--dore-accent);
+}
+
+.card-wedding img {
+    height: 180px; 
+    object-fit: cover;
+    border-bottom: 3px solid var(--vert-sapin); /* Ligne de séparation forte */
+}
+
+.card-wedding .card-title {
+    font-family: var(--font-pro);
+    font-weight: 700;
+    color: var(--vert-sapin);
+    font-size: 1.2rem;
+}
+
+/* --- FOOTER (Minimaliste) --- */
+.footer-pro {
+    background-color: var(--vert-sapin);
+    color: rgba(249, 248, 244, 0.7); /* Texte Champagne légèrement transparent */
+    font-family: var(--font-pro);
+    font-size: 0.9rem;
+}
+
+/* ... (Conservez tout le CSS de la section 2 précédente) ... */
+/* Ajouts spécifiques pour la refonte de la Home Page */
+
+/* --- DÉTAIL : Information Clé sous le bandeau --- */
+.key-info {
+    font-family: var(--font-pro);
+    font-weight: 600;
+    color: var(--champagne-clair);
+    border-top: 1px solid rgba(249, 248, 244, 0.3) !important; /* Bordure plus douce */
+}
+.text-gold-accent {
+    color: var(--dore-accent) !important;
+}
+
+/* --- TUILERIE D'ACCÈS RAPIDE (Cartes) --- */
+
+/* L'icône principale dans la tuile */
+.icon-main-tile {
+    font-size: 2.5rem;
+    color: var(--dore-accent); /* Icône Dorée */
+    transition: color 0.3s, transform 0.3s;
+}
+.card-wedding:hover .icon-main-tile {
+    color: var(--vert-sapin); /* Changement de couleur au survol */
+    transform: scale(1.1);
+}
+
+.card-wedding .card-title {
+    font-size: 1.3rem;
+    margin-bottom: 0.5rem;
+    color: var(--vert-sapin);
+}
+
+/* La description détaillée pour rendre la tuile utile */
+.card-description {
+    font-size: 0.9rem;
+    color: rgba(1, 50, 32, 0.7); /* Vert Sapin semi-transparent */
+    min-height: 40px; /* Assure une hauteur minimale pour toutes les cartes */
+}
+
+/* Lien d'accès (plus moderne que le simple texte) */
+.access-link {
+    display: block;
+    margin-top: 10px;
+    font-weight: 700;
+    color: var(--vert-sapin);
+    font-size: 0.95rem;
+    transition: color 0.3s;
+}
+.card-wedding:hover .access-link {
+    color: var(--dore-accent);
+}
+
+/* --- ÉLÉMENT DE DÉTAIL : Code Vestimentaire --- */
+.dress-code-banner {
+    background-color: var(--vert-tres-clair); /* Fond vert très clair */
+    color: var(--vert-sapin);
+    border-radius: 10px;
+    border-left: 5px solid var(--dore-accent); /* Bordure dorée pour l'accent */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    font-family: var(--font-pro);
+    font-size: 1.1rem;
+}
+
+/* Ajoutez ce bloc à la fin de votre fichier mariage.css */
+
+/* --- TIMELINE (Frise Chronologique) STYLES PRO --- */
+
+.timeline {
+    list-style: none;
+    padding: 0;
+    position: relative;
+}
+
+/* La ligne verticale Vert Sapin (le "fil" de l'histoire) */
+.timeline:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background-color: var(--vert-sapin); /* Vert Sapin */
+    left: 10px; /* Décalage à gauche pour la vue mobile */
+    border-radius: 2px;
+    box-shadow: 0 0 5px rgba(1, 50, 32, 0.3);
+}
+
+/* Positionnement des éléments (points de l'histoire) */
+.timeline-item {
+    margin-bottom: 40px;
+    position: relative;
+    padding-left: 40px; /* Espace pour le point */
+}
+
+/* Le point Doré sur la ligne */
+.timeline-point {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 5px;
+    width: 24px;
+    height: 24px;
+    background-color: var(--dore-accent); /* Doré */
+    border: 4px solid var(--champagne-clair); /* Bordure Champagne (effet 3D) */
+    border-radius: 50%;
+    z-index: 10;
+    box-shadow: 0 0 10px rgba(184, 134, 11, 0.5);
+    transition: transform 0.3s;
+}
+
+.timeline-item:hover .timeline-point {
+    transform: scale(1.1);
+}
+
+.timeline-panel {
+    background-color: #ffffff; /* Fond blanc pur pour le contraste */
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s, box-shadow 0.3s;
+    border-left: 5px solid var(--vert-sapin); /* Accent Vert Sapin */
+}
+.timeline-item:hover .timeline-panel {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.15);
+}
+
+.timeline-heading {
+    margin-top: 0;
+    font-family: var(--font-pro);
+    font-weight: 700;
+    color: var(--vert-sapin);
+    font-size: 1.3rem;
+    margin-bottom: 5px;
+}
+
+.timeline-body {
+    font-family: var(--font-pro);
+    color: #444;
+}
+
+.timeline-date {
+    display: block;
+    font-weight: 600;
+    color: var(--dore-accent);
+    margin-bottom: 10px;
+    font-size: 0.9rem;
+}
+
+/* Media Query pour un affichage centré sur Desktop (meilleure UX) */
+@media (min-width: 768px) {
+    .timeline:before {
+        left: 50%;
+        margin-left: -2px;
+    }
+    .timeline-item {
+        margin-bottom: 70px;
+        width: 50%;
+        padding: 0 30px;
+    }
+    .timeline-item:nth-child(even) {
+        padding-left: calc(50% + 30px); /* Pousse les items pairs à droite */
+    }
+    .timeline-item:nth-child(odd) {
+        padding-right: calc(50% + 30px); /* Pousse les items impairs à gauche */
+        text-align: right;
+    }
+    .timeline-item:nth-child(odd) .timeline-point {
+        left: auto;
+        right: -12px;
+    }
+    .timeline-item:nth-child(even) .timeline-point {
+        left: -12px;
+    }
+    .timeline-item:nth-child(odd) .timeline-panel {
+        border-left: none;
+        border-right: 5px solid var(--vert-sapin);
+    }
+}
+
+/* Ajoutez ce bloc à la fin de votre fichier mariage.css */
+
+/* --- STYLES SPÉCIFIQUES À LA PAGE MENU --- */
+
+/* Style pour les onglets Bootstrap (Look Pro Vert Sapin/Doré) */
+.nav-menu-tabs .nav-link {
+    color: var(--champagne-clair); /* Texte Champagne */
+    border: none;
+    border-bottom: 3px solid transparent;
+    padding: 1rem 1.5rem;
+    font-weight: 600;
+    font-family: var(--font-pro);
+    transition: all 0.3s;
+}
+
+/* Onglet actif */
+.nav-menu-tabs .nav-link.active {
+    color: var(--dore-accent); /* Texte Doré */
+    background-color: transparent !important;
+    border-bottom: 3px solid var(--dore-accent); /* Ligne Dorée en bas */
+    font-weight: 700;
+}
+
+/* Onglet survolé (non actif) */
+.nav-menu-tabs .nav-link:hover:not(.active) {
+    color: var(--vert-sapin);
+    border-bottom: 3px solid var(--vert-tres-clair);
+}
+
+/* Style de la carte de plat (look luxe) */
+.menu-card {
+    background-color: #ffffff;
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
+    margin-bottom: 25px;
+    overflow: hidden;
+    transition: transform 0.3s;
+}
+.menu-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+}
+
+.menu-section-title {
+    font-family: var(--font-elegant);
+    font-size: 2rem;
+    color: var(--dore-accent);
+    margin-top: 0;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid var(--vert-tres-clair);
+    padding-bottom: 10px;
+}
+
+.dish-name {
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    font-size: 1.4rem;
+    color: var(--dore-accent);
+}
+
+.dish-description {
+    font-size: 1rem;
+    color: #555;
+    margin-top: 5px;
+}
+
+.diet-icon {
+    font-size: 1.2rem;
+    margin-left: 10px;
+}
+
+.card-callout {
+    background-color: var(--vert-tres-clair);
+    border-radius: 10px;
+    padding: 15px;
+    margin-top: 20px;
+    font-weight: 600;
+    color: var(--vert-sapin);
+}
+
+/* Ajoutez ce bloc à la fin de votre fichier mariage.css */
+
+/* --- STYLES SPÉCIFIQUES À LA PAGE CÉRÉMONIE (Livret Interactif) --- */
+
+.ceremony-heading {
+    font-family: var(--font-elegant);
+    font-size: 3rem;
+    color: var(--dore-accent);
+    margin-bottom: 2rem;
+}
+
+/* Bandeau de Statut "Live" */
+.status-banner-live {
+    background-color: var(--vert-sapin);
+    color: var(--champagne-clair);
+    border-radius: 15px;
+    padding: 1.5rem;
+    margin-bottom: 3rem;
+    box-shadow: 0 5px 20px rgba(1, 50, 32, 0.4);
+    animation: pulseStatus 2s infinite; /* Animation pour l'effet "Live" */
+}
+.status-banner-live .current-step {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--dore-accent);
+}
+
+@keyframes pulseStatus {
+    0% { box-shadow: 0 0 0 0 rgba(184, 134, 11, 0.7); }
+    70% { box-shadow: 0 0 0 15px rgba(184, 134, 11, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(184, 134, 11, 0); }
+}
+
+/* Accordéon du Livret (Look Pro & Clean) */
+.ceremony-accordion .accordion-item {
+    border: 1px solid var(--vert-tres-clair);
+    margin-bottom: 10px;
+    border-radius: 15px !important;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.ceremony-accordion .accordion-button {
+    background-color: var(--champagne-clair);
+    color: var(--vert-sapin);
+    font-family: var(--font-pro);
+    font-weight: 700;
+    font-size: 1.1rem;
+    padding: 1rem 1.5rem;
+    border-bottom: none;
+}
+.ceremony-accordion .accordion-button:not(.collapsed) {
+    background-color: var(--vert-tres-clair); /* Fond légèrement vert quand ouvert */
+    color: var(--vert-sapin);
+    box-shadow: inset 0 -3px 0 var(--dore-accent); /* Ligne Dorée en bas du titre ouvert */
+}
+
+/* Contenu des étapes */
+.accordion-body-content {
+    padding: 15px 20px;
+}
+.accordion-body-content .hymn-title {
+    font-style: italic;
+    font-weight: 600;
+    color: var(--dore-accent);
+}
+.accordion-body-content .reading-text {
+    font-style: italic;
+    border-left: 3px solid var(--vert-tres-clair);
+    padding-left: 10px;
+    margin-top: 10px;
+    color: #555;
+}
+
+/* Section info lieu */
+.location-card {
+    background-color: #ffffff;
+    border: 1px solid var(--vert-tres-clair);
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    margin-top: 2rem;
+}
+
+/* Ajoutez ce bloc à la fin de votre fichier mariage.css */
+
+/* --- STYLES SPÉCIFIQUES À LA GALERIE PHOTO --- */
+
+.gallery-heading {
+    font-family: var(--font-elegant);
+    font-size: 3rem;
+    color: var(--dore-accent);
+    margin-bottom: 2rem;
+}
+
+/* --- Bloc d'Upload (Formulaire) --- */
+.upload-card {
+    background-color: var(--vert-tres-clair); /* Fond vert clair pour le contraste */
+    border: none;
+    border-radius: 20px;
+    padding: 2rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    margin-bottom: 3rem;
+}
+
+.upload-card .form-control, 
+.upload-card .btn {
+    border-radius: 10px;
+}
+
+/* Bouton d'upload (utilise le style pro principal) */
+.btn-upload-photo {
+    /* Style basé sur btn-pro-primary (vert sapin) */
+    background-color: var(--vert-sapin);
+    color: var(--champagne-clair);
+    font-weight: 700;
+    padding: 0.8rem 1.5rem;
+    transition: all 0.3s;
+}
+.btn-upload-photo:hover {
+    background-color: var(--dore-accent);
+    color: var(--vert-sapin);
+}
+
+/* Alertes de succès */
+.alert-success {
+    background-color: #d4edda;
+    border-color: #c3e6cb;
+    color: #155724;
+    font-weight: 600;
+    border-radius: 10px;
+}
+
+/* --- Grille de Photos (Look moderne) --- */
+.photo-item-card {
+    background-color: #ffffff;
+    border: none;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+.photo-item-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+}
+
+.photo-item-card img {
+    width: 100%;
+    height: 180px; /* Hauteur fixe pour une grille propre */
+    object-fit: cover;
+    filter: brightness(0.95);
+    transition: filter 0.3s;
+}
+.photo-item-card:hover img {
+    filter: brightness(1);
+}
+
+.photo-meta {
+    font-family: var(--font-pro);
+    font-size: 0.85rem;
+    color: var(--vert-sapin);
+    font-weight: 600;
+}
+
+/* Ajoutez ce bloc à la fin de votre fichier mariage.css */
+
+/* --- STYLES SPÉCIFIQUES À LA PAGE MAIRIE (Récit Anniversaire) --- */
+
+.mairie-heading {
+    font-family: var(--font-elegant);
+    font-size: 3rem;
+    color: var(--dore-accent);
+    margin-bottom: 1rem;
+}
+
+/* Bandeau Anniversaire (Souligner l'importance de la date) */
+.anniversary-banner {
+    background-color: var(--vert-sapin);
+    color: var(--champagne-clair);
+    border-radius: 15px;
+    padding: 1rem;
+    margin-bottom: 3rem;
+    text-align: center;
+    font-weight: 600;
+    box-shadow: 0 5px 20px rgba(1, 50, 32, 0.4);
+}
+
+.anniversary-banner strong {
+    color: var(--dore-accent);
+    font-size: 1.1em;
+}
+
+/* Style du texte du récit */
+.mairie-story {
+    font-family: 'Playfair Display', serif; /* Utiliser Playfair pour un aspect narratif élégant */
+    line-height: 1.8;
+    font-size: 1.15rem;
+    color: #333;
+}
+
+/* Placeholder des images (pour une insertion facile après) */
+.photo-placeholder {
+    width: 100%;
+    height: 300px;
+    background-color: var(--vert-tres-clair); /* Fond clair pour le contraste */
+    border: 3px dashed var(--vert-sapin); /* Bordure Vert Sapin en pointillé */
+    border-radius: 15px;
+    margin: 2rem 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--vert-sapin);
+    font-family: var(--font-pro);
+    font-weight: 600;
+    font-size: 1.1rem;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    opacity: 0.8;
+}
+
+/* Bloc d'information clé */
+.info-bloc {
+    background-color: #ffffff;
+    border-radius: 15px;
+    padding: 20px;
+    border-left: 5px solid var(--dore-accent);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    margin-top: 3rem;
+}
+.info-bloc i {
+    color: var(--vert-sapin);
+}
+
+/* Ajoutez ce bloc à la fin de votre fichier mariage.css */
+
+/* --- STYLES SPÉCIFIQUES AU LIVRE D'OR --- */
+
+.guestbook-heading {
+    font-family: var(--font-elegant);
+    font-size: 3.5rem; /* Très grand pour l'impact */
+    color: var(--dore-accent);
+    margin-bottom: 3rem;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* --- Bloc de Signature (Le Vrai Livre) --- */
+.signature-card {
+    background-color: #ffffff; /* Page blanche */
+    border: 1px solid var(--vert-tres-clair);
+    border-radius: 15px;
+    padding: 30px;
+    box-shadow: 0 15px 40px rgba(0, 50, 32, 0.15); /* Ombre Verte / effet 3D Livre */
+    margin-bottom: 3rem;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Ruban Vert Sapin (décoratif) */
+.signature-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 15px;
+    height: 100%;
+    background-color: var(--vert-sapin);
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2) inset; /* Effet de reliure */
+}
+
+/* Texte d'instruction élégant */
+.instruction-text {
+    font-family: var(--font-pro);
+    font-size: 1.1rem;
+    color: var(--vert-sapin);
+    margin-bottom: 1.5rem;
+}
+
+/* Champ de saisie personnalisé */
+.signature-card .form-control {
+    border: 1px solid var(--vert-tres-clair);
+    transition: border-color 0.3s;
+}
+.signature-card .form-control:focus {
+    border-color: var(--dore-accent);
+    box-shadow: 0 0 0 0.25rem rgba(184, 134, 11, 0.2);
+}
+
+/* Bouton de Signature */
+.btn-signature {
+    background-color: var(--vert-sapin);
+    color: var(--champagne-clair);
+    font-weight: 700;
+    padding: 0.8rem 1.5rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-radius: 50px; /* Rond pour un look plus moderne */
+    transition: all 0.3s;
+}
+.btn-signature:hover {
+    background-color: var(--dore-accent);
+    color: var(--vert-sapin);
+    transform: translateY(-2px);
+}
+
+/* --- Affichage des Messages (Les Pages Écrites) --- */
+.message-card {
+    background-color: #ffffff;
+    border: none;
+    border-left: 5px solid var(--dore-accent); /* Mettre en avant le message */
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+
+.message-content {
+    font-family: 'Playfair Display', serif; /* Police manuscrite/élégante */
+    font-size: 1.3rem;
+    line-height: 1.6;
+    color: #333;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    font-style: italic;
+}
+
+.message-author {
+    font-family: var(--font-pro);
+    font-weight: 700;
+    color: var(--vert-sapin);
+    font-size: 1.1rem;
+}
+
+.message-date {
+    font-family: var(--font-pro);
+    font-size: 0.8rem;
+    color: #999;
+}
+.carousel-item {
+background-color: #fefcf7;
+border: 2px solid #013220;
+border-radius: 15px;
+padding: 2rem;
+}
+.carousel-item h5 {
+font-family: 'Playfair Display', serif;
+font-size: 1.5rem;
+color: #013220;
+}
+
+/* Ajoutez ce bloc à la fin de votre fichier mariage.css */
+
+/* --- STYLES SPÉCIFIQUES AU JEU QUI DE NOUS DEUX --- */
+
+.game-heading {
+    font-family: var(--font-elegant);
+    font-size: 3rem;
+    color: var(--dore-accent);
+    margin-bottom: 2.5rem;
+}
+
+/* Carte de jeu principale */
+.game-card {
+    background-color: #ffffff;
+    border: none;
+    border-radius: 25px;
+    padding: 2rem;
+    box-shadow: 0 10px 40px rgba(0, 50, 32, 0.1); /* Ombre douce */
+}
+
+/* Style de la question (mise en évidence) */
+.question-content {
+    min-height: 250px;
+    background-color: var(--vert-tres-clair); /* Fond vert très clair pour le contraste */
+    border-radius: 15px;
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+.question-content h5 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--vert-sapin);
+    margin-bottom: 2rem;
+}
+
+/* --- Boutons de Réponse (Stylisation des Radios) --- */
+.answer-options {
+    display: flex;
+    justify-content: center;
+    gap: 30px; /* Espace entre Gilles et Maëva */
+    width: 100%;
+}
+
+.answer-options label {
+    font-family: var(--font-pro);
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: var(--vert-sapin);
+    cursor: pointer;
+    padding: 10px 20px;
+    border: 2px solid var(--vert-sapin);
+    border-radius: 50px;
+    transition: all 0.3s;
+    background-color: var(--champagne-clair);
+}
+
+.answer-options input[type="radio"] {
+    display: none; /* Cache le bouton radio par défaut */
+}
+
+/* État sélectionné */
+.answer-options input[type="radio"]:checked + label {
+    background-color: var(--dore-accent);
+    color: var(--vert-sapin);
+    border-color: var(--dore-accent);
+    box-shadow: 0 4px 10px rgba(184, 134, 11, 0.4);
+    transform: scale(1.05);
+}
+
+/* --- Navigation Carrousel (Boutons Suivant/Précédent) --- */
+.carousel-control-wedding {
+    background-color: var(--vert-sapin) !important;
+    color: var(--champagne-clair);
+    border: none;
+    border-radius: 10px;
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    transition: all 0.3s;
+}
+.carousel-control-wedding:hover {
+    background-color: var(--dore-accent) !important;
+    color: var(--vert-sapin);
+}
+/* Aligner les boutons en bas de la carte */
+.quiz-navigation {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 2rem;
+}
+
+/* Ajoutez ce bloc à la fin de votre fichier mariage.css */
+
+/* --- STYLES SPÉCIFIQUES À L'URNE NUMÉRIQUE --- */
+
+.urne-heading {
+    font-family: var(--font-elegant);
+    font-size: 3rem;
+    color: var(--dore-accent);
+    margin-bottom: 1rem;
+}
+
+.urne-intro {
+    font-size: 1.1rem;
+    color: var(--champagne-clair);
+    font-weight: 600;
+    margin-bottom: 3rem;
+}
+
+/* Carte de Contribution (Mise en avant) */
+.contribution-card {
+    background-color: #ffffff;
+    border: none;
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 10px 40px rgba(1, 50, 32, 0.15);
+    position: relative;
+    border-top: 5px solid var(--vert-sapin); /* Ligne d'accent */
+}
+
+/* Boutons de montant prédéfini (UX rapide) */
+.amount-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+.btn-amount {
+    background-color: var(--vert-tres-clair);
+    color: var(--vert-sapin);
+    border: 1px solid var(--vert-sapin);
+    border-radius: 50px;
+    font-weight: 700;
+    padding: 0.5rem 1rem;
+    transition: all 0.2s;
+}
+.btn-amount:hover, .btn-amount.active {
+    background-color: var(--dore-accent);
+    color: var(--vert-sapin);
+    border-color: var(--dore-accent);
+    transform: translateY(-2px);
+}
+
+/* Input Montant (€) plus grand */
+.input-montant {
+    font-size: 1.5rem;
+    font-weight: 700;
+    text-align: center;
+    color: var(--vert-sapin);
+    border: 2px solid var(--vert-tres-clair);
+    border-radius: 10px;
+}
+
+/* --- Options de Paiement Démérialisées (Look Pro) --- */
+.payment-options-box {
+    background-color: #fcfcfc;
+    border-radius: 15px;
+    padding: 15px;
+    margin-top: 2rem;
+    border: 1px dashed var(--vert-tres-clair);
+}
+.payment-option-logo {
+    height: 25px;
+    margin: 0 5px;
+    opacity: 0.8;
+}
+
+/* Bouton Final (CTA) */
+.btn-payer {
+    background-color: var(--dore-accent);
+    color: var(--vert-sapin);
+    border-radius: 50px;
+    padding: 1rem 2rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    transition: all 0.3s;
+    box-shadow: 0 8px 20px rgba(184, 134, 11, 0.3);
+}
+.btn-payer:hover {
+    background-color: var(--vert-sapin);
+    color: var(--champagne-clair);
+}
+
+/* Ajoutez ce bloc à la fin de votre fichier mariage.css */
+
+/* --- STYLES SPÉCIFIQUES DÉTAILS PRATIQUES --- */
+
+.details-heading {
+    font-family: var(--font-elegant);
+    font-size: 3rem;
+    color: #e8e8e8; /*var(--vert-sapin);*/
+    margin-bottom: 2rem;
+}
+
+.details-section {
+    background-color: #ffffff;
+    border-radius: 20px;
+    padding: 30px;
+    margin-bottom: 30px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+    border-left: 5px solid var(--dore-accent); /* Accent doré */
+}
+
+.details-section h3 {
+    font-family: var(--font-pro);
+    font-weight: 700;
+    color: var(--vert-sapin);
+    border-bottom: 2px dashed var(--vert-tres-clair);
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
+
+.info-item {
+    margin-bottom: 15px;
+    line-height: 1.6;
+}
+
+.info-item i {
+    color: var(--dore-accent);
+    min-width: 25px; /* Assure l'alignement des icônes */
+    text-align: center;
+}
+
+/* Style pour les boutons d'action (ex: Réserver, Voir la carte) */
+.btn-details-action {
+    background-color: var(--vert-sapin);
+    color: var(--champagne-clair);
+    border-radius: 50px;
+    font-weight: 600;
+    margin-top: 10px;
+    transition: background-color 0.3s;
+}
+.btn-details-action:hover {
+    background-color: var(--dore-accent);
+    color: #e8e8e8; /*var(--vert-sapin);*/
+}
+
+/* Ajoutez ce bloc à la fin de votre fichier mariage.css */
+
+/* --- STYLES SPÉCIFIQUES CHASSE AU TRÉSOR --- */
+
+.treasure-heading {
+    font-family: var(--font-elegant);
+    font-size: 3rem;
+    color: var(--dore-accent);
+    margin-bottom: 1.5rem;
+}
+
+/* Carte de soumission (pour le formulaire) */
+.submission-card {
+    background-color: #ffffff;
+    border: none;
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+    border-left: 5px solid #e8e8e8; /*var(--vert-sapin);*/
+}
+
+/* Bloc des Missions/Indices (élément clé) */
+.missions-box {
+    background-color: var(--vert-tres-clair);
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 30px;
+}
+
+.missions-box h3 {
+    color: var(--vert-sapin);
+    font-weight: 700;
+    text-align: center;
+    border-bottom: 1px dashed var(--dore-accent);
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+}
+
+.mission-item {
+    font-family: var(--font-pro);
+    font-size: 1.1rem;
+    padding: 8px 0;
+    border-bottom: 1px dotted rgba(1, 50, 32, 0.2);
+}
+
+.mission-item:last-child {
+    border-bottom: none;
+}
+
+.mission-item i {
+    color: var(--dore-accent);
+    min-width: 25px;
+}
+
+/* Bouton d'envoi */
+.btn-submit-treasure {
+    background-color: var(--dore-accent);
+    color: var(--vert-sapin);
+    border: none;
+    border-radius: 50px;
+    padding: 0.8rem 1.5rem;
+    font-weight: 700;
+    transition: all 0.3s;
+}
+.btn-submit-treasure:hover {
+    background-color: var(--vert-sapin);
+    color: var(--champagne-clair);
+}
+
+.mairie-photo img {
+    max-height: 420px;
+    object-fit: cover;
+}
+
+.photo-caption {
+    font-size: 0.95rem;
+    color: var(--dore-accent);
+    font-style: italic;
+}
+
+.color-dot {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+/* Styles pour le tableau de bord amélioré */
+.dashboard-container {
+    padding: 20px;
+}
+
+/* Cartes de statistiques */
+.stats-card {
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    transition: transform 0.3s, box-shadow 0.3s;
+    border: none;
+}
+
+.stats-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+}
+
+.stats-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.stats-success {
+    background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
+    color: white;
+}
+
+.stats-warning {
+    background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+    color: white;
+}
+
+.stats-info {
+    background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+    color: #333;
+}
+
+.stats-label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 5px;
+}
+
+.stats-value {
+    font-size: 2rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+.stats-icon {
+    font-size: 2rem;
+    opacity: 0.7;
+}
+
+/* Cartes du tableau de bord */
+.dashboard-card {
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    border: none;
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.dashboard-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+}
+
+.dashboard-card .card-header {
+    background-color: rgba(0, 0, 0, 0.02);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+/* Timeline pour les étapes */
+.timeline-steps {
+    position: relative;
+    padding-left: 30px;
+}
+
+.timeline-steps::before {
+    content: '';
+    position: absolute;
+    left: 10px;
+    top: 0;
+    height: 100%;
+    width: 2px;
+    background-color: #e9ecef;
+}
+
+.step-item {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.step-item:last-child {
+    margin-bottom: 0;
+}
+
+.step-marker {
+    position: absolute;
+    left: -25px;
+    top: 0;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background-color: #e9ecef;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    color: #6c757d;
+    z-index: 1;
+}
+
+.step-item.active .step-marker {
+    background-color: #28a745;
+    color: white;
+}
+
+.step-item.completed .step-marker {
+    background-color: #007bff;
+    color: white;
+}
+
+.step-content h6 {
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+
+.step-content p {
+    margin: 0;
+    font-size: 0.875rem;
+}
+
+/* États vides */
+.empty-state i {
+    opacity: 0.5;
+}
+
+.empty-state p {
+    margin-bottom: 20px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .dashboard-container {
+        padding: 10px;
+    }
+    
+    .stats-value {
+        font-size: 1.5rem;
+    }
+    
+    .stats-icon {
+        font-size: 1.5rem;
+    }
+    
+    .card-header {
+        padding: 0.75rem 1rem;
+    }
+    
+    .card-body {
+        padding: 1rem;
+    }
+    
+    .table-responsive {
+        font-size: 0.875rem;
+    }
+}
+
+.qr-code-container {
+    position: relative;
+    display: inline-block;
+}
+
+.qr-logo-overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: white;
+    padding: 5px;
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.qr-logo {
+    max-width: 50px;
+    max-height: 50px;
+}
+
+/* =========================================================================
+   NAVIGATION DU SITE INVITÉ
+   Ajoutée après coup : le site n'en avait aucune, il fallait repasser par
+   l'accueil pour changer de page.
+   ========================================================================= */
+
+.navbar-date {
+    margin-left: auto;
+    font-size: .82rem;
+    font-weight: 600;
+    letter-spacing: .08em;
+    color: var(--dore-accent);
+}
+
+/* --- Menu horizontal (tablette et ordinateur) --------------------------- */
+
+.nav-invite {
+    position: sticky;
+    top: 64px;
+    z-index: 900;
+    background: var(--champagne-clair);
+    border-bottom: 1px solid rgba(0, 0, 0, .07);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, .04);
+}
+
+.nav-invite-piste {
+    display: flex;
+    gap: .3rem;
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding-block: .5rem;
+}
+.nav-invite-piste::-webkit-scrollbar { display: none; }
+
+.nav-invite a {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    flex: none;
+    padding: .5rem .85rem;
+    border-radius: 999px;
+    font-size: .86rem;
+    font-weight: 600;
+    color: var(--vert-sapin);
+    text-decoration: none;
+    opacity: .72;
+    transition: opacity .15s ease, background-color .15s ease;
+}
+.nav-invite a:hover { opacity: 1; background: var(--vert-tres-clair); }
+.nav-invite a.actif {
+    opacity: 1;
+    background: var(--vert-sapin);
+    color: var(--champagne-clair);
+}
+.nav-invite a i { font-size: .8rem; }
+
+/* --- Barre basse (mobile) ------------------------------------------------ */
+
+.barre-basse { display: none; }
+
+@media (max-width: 767px) {
+    /* Le menu horizontal laisse la place à la barre basse. */
+    .nav-invite { display: none; }
+
+    .barre-basse {
+        position: fixed;
+        left: 0; right: 0; bottom: 0;
+        z-index: 1000;
+        display: grid;
+        grid-auto-flow: column;
+        grid-auto-columns: 1fr;
+        background: var(--champagne-clair);
+        border-top: 1px solid rgba(0, 0, 0, .08);
+        box-shadow: 0 -2px 16px rgba(0, 0, 0, .07);
+        padding-bottom: env(safe-area-inset-bottom);
+    }
+
+    .barre-basse a {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: .2rem;
+        padding: .5rem .2rem .45rem;
+        min-height: 56px;
+        font-size: .62rem;
+        font-weight: 600;
+        color: var(--vert-sapin);
+        text-decoration: none;
+        opacity: .6;
+    }
+    .barre-basse a i { font-size: 1.05rem; }
+    .barre-basse a.actif { opacity: 1; color: var(--dore-accent); }
+    .barre-basse a span {
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    /* Sans quoi la barre masque la fin du contenu. */
+    .main-content { padding-bottom: 76px; }
+}
+
+/* La page d'entrée n'a pas de navigation : elle ne doit pas réserver la place. */
+.landing-container { margin-bottom: -76px; }
+
+/* =========================================================================
+   DÉROULÉ EN DIRECT
+   Les états sont pilotés par des classes, pour que le sondage n'ait qu'à
+   les échanger sans reconstruire le HTML.
+   ========================================================================= */
+
+.avancement-deroule {
+    height: 5px;
+    background: rgba(255, 255, 255, .18);
+    border-radius: 999px;
+    overflow: hidden;
+    margin: .6rem auto 1.6rem;
+    max-width: 640px;
+}
+.avancement-barre {
+    height: 100%;
+    width: 0;
+    background: var(--dore-accent);
+    border-radius: 999px;
+    transition: width .6s ease;
+}
+
+.etape-carte { transition: border-color .3s ease, opacity .3s ease, box-shadow .3s ease; }
+
+.etape--a_venir  { opacity: 1; }
+.etape--termine  { opacity: .5; }
+.etape--en_cours {
+    border: 2px solid var(--dore-accent);
+    box-shadow: 0 6px 24px rgba(0, 0, 0, .12);
+}
+
+/* Les deux pastilles d'état sont dans le HTML ; seule celle qui
+   correspond à l'état courant s'affiche. */
+.etat-etape {
+    display: none;
+    font-size: .68rem;
+    font-weight: 700;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    padding: .2rem .6rem;
+    border-radius: 999px;
+}
+.etape--en_cours .etat-etape[data-etat="en_cours"] {
+    display: inline-block;
+    background: var(--dore-accent);
+    color: var(--champagne-clair);
+}
+.etape--termine .etat-etape[data-etat="termine"] {
+    display: inline-block;
+    background: rgba(0, 0, 0, .1);
+    color: inherit;
+}
+
+/* Un pouls discret sur l'étape en cours : on comprend que ça vit. */
+.etape--en_cours .etat-etape[data-etat="en_cours"] { animation: pouls 2.4s ease-in-out infinite; }
+
+@keyframes pouls {
+    0%, 100% { opacity: 1; }
+    50%      { opacity: .55; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .etape--en_cours .etat-etape { animation: none; }
+    .avancement-barre { transition: none; }
+}
+
+/* =========================================================================
+   APPLICATION DES JETONS DE FORME ET DE CARACTÈRE
+   -------------------------------------------------------------------------
+   Écrit en fin de fichier pour surcharger les valeurs figées des sections
+   historiques, sans avoir à les réécrire une par une.
+   ========================================================================= */
+
+/* --- Formes ------------------------------------------------------------- */
+
+.card,
+.card-wedding,
+.splash-card,
+.location-card,
+.details-section,
+.menu-card,
+.timeline-panel,
+.banner            { border-radius: var(--r-carte); }
+
+.btn-pro-primary,
+.btn-pro-secondary,
+.status-banner-live,
+.dress-code-banner { border-radius: var(--r-bouton); }
+
+.card-wedding img,
+.timeline-body img,
+.gallery-item img,
+.decedent-photo    { border-radius: var(--r-image); }
+
+/* --- Caractère ---------------------------------------------------------- */
+
+.card-title,
+.access-link,
+.menu-section-title,
+.timeline-heading {
+    letter-spacing: var(--lettrage);
+    text-transform: var(--capitales);
+    font-weight: var(--graisse);
+}
+
+.btn-pro-primary { letter-spacing: var(--lettrage); }
+
+/* Ornement sous les titres de section : le thème décide s'il y en a un. */
+.ceremony-heading,
+.details-heading,
+.urne-heading,
+.menu-section-title { position: relative; }
+
+body.ornement-filet .ceremony-heading::after,
+body.ornement-filet .details-heading::after,
+body.ornement-filet .urne-heading::after {
+    content: '';
+    display: block;
+    width: 54px;
+    height: 2px;
+    background: var(--dore-accent);
+    margin: .8rem auto 0;
+    border-radius: 999px;
+}
+
+body.ornement-double .ceremony-heading::after,
+body.ornement-double .details-heading::after,
+body.ornement-double .urne-heading::after {
+    content: '❦';
+    display: block;
+    font-size: 1.2rem;
+    color: var(--dore-accent);
+    margin-top: .5rem;
+    line-height: 1;
+}
+
+/* --- Densité ------------------------------------------------------------ */
+
+.banner          { padding: calc(2rem * var(--densite)); }
+.details-section { margin-bottom: calc(2rem * var(--densite)); }
+.card-wedding    { padding: calc(1rem * var(--densite)); }
+.row.g-4         { row-gap: calc(1.5rem * var(--densite)); }
+
+/* --- Couleur secondaire ------------------------------------------------- */
+
+.status-banner-live { background: var(--secondaire); }
+.timeline-point     { background: var(--secondaire); }
+
+/* =========================================================================
+   ADAPTATION AUX PETITS ÉCRANS
+   -------------------------------------------------------------------------
+   Le jour J, la quasi-totalité du trafic vient d'un téléphone tenu d'une
+   main. Cette section passe après tout le reste pour corriger les tailles
+   figées des sections historiques.
+   ========================================================================= */
+
+/* --- Rien ne doit déborder horizontalement ------------------------------ */
+
+html, body { max-width: 100%; overflow-x: hidden; }
+img, video, iframe, table, pre { max-width: 100%; }
+.table-responsive, .ratio { max-width: 100%; }
+
+/* --- Typographie fluide ------------------------------------------------- */
+
+/*
+   clamp() remplace les tailles figées : le titre grandit avec l'écran au
+   lieu de déborder sur un téléphone et de paraître minuscule sur un grand
+   moniteur.
+*/
+.landing-title      { font-size: clamp(2.6rem, 13vw, 4.5rem); line-height: 1.05; }
+.banner h2          { font-size: clamp(1.9rem, 8vw, 3rem);    line-height: 1.15; }
+.ceremony-heading,
+.details-heading,
+.urne-heading,
+.menu-section-title { font-size: clamp(1.6rem, 6.5vw, 2.6rem); line-height: 1.2; }
+
+.landing-lead  { font-size: clamp(1rem, 3.6vw, 1.2rem); }
+.date-widget   { font-size: clamp(1.3rem, 5.5vw, 1.8rem); }
+.banner-mot    { font-size: clamp(.92rem, 3.4vw, 1.05rem); opacity: .9; }
+
+/* Les longs mots ne doivent pas percer la carte. */
+h1, h2, h3, h4, h5, .card-title, .timeline-heading { overflow-wrap: break-word; }
+
+/* --- Saisie -------------------------------------------------------------- */
+
+@media (max-width: 820px) {
+    /* Sous 16 px, iOS zoome au focus et décale toute la mise en page. */
+    input, select, textarea, .form-control, .form-select { font-size: 16px !important; }
+}
+
+/* --- Cibles tactiles ----------------------------------------------------- */
+
+@media (pointer: coarse) {
+    .btn, .btn-pro-primary, .nav-invite a, .access-link, .barre-basse a {
+        min-height: 44px;
+    }
+    .btn-pro-primary { padding-inline: 1.6rem; }
+}
+
+/* --- Mise en page -------------------------------------------------------- */
+
+@media (max-width: 767px) {
+    .main-content { padding-top: 66px; }
+
+    .banner {
+        padding: calc(1.3rem * var(--densite));
+        margin-bottom: 1.8rem;
+        border-radius: var(--r-carte);
+    }
+
+    .container, .container-fluid { padding-inline: 1rem; }
+
+    /* Deux tuiles par ligne : trois deviennent illisibles. */
+    .row.g-4 > .col-6 { padding-inline: .4rem; }
+    .card-wedding { padding: .9rem .6rem; }
+    .card-wedding .card-title { font-size: .92rem; }
+    .card-wedding .card-description { font-size: .74rem; }
+    .icon-main-tile { font-size: 1.5rem; }
+
+    /* La frise passe en pleine largeur, sans décalage à gauche. */
+    .timeline { padding-left: 0; }
+    .timeline-item { padding-left: 1.6rem; }
+
+    .splash-card { padding: 2rem 1.3rem !important; }
+    .location-card, .details-section { padding: 1.1rem; }
+
+    .status-banner-live { font-size: .82rem; padding: .6rem .8rem; }
+
+    /* Les cartes du menu et les listes respirent moins. */
+    .menu-card .p-4 { padding: 1rem !important; }
+}
+
+@media (max-width: 400px) {
+    .card-wedding .card-description { display: none; }
+    .access-link { font-size: .72rem; }
+}
+
+/* --- Encoche et barre gestuelle ------------------------------------------ */
+
+.navbar        { padding-top: max(.75rem, env(safe-area-inset-top)); }
+.footer-pro    { padding-bottom: max(1rem, env(safe-area-inset-bottom)); }
+
+/* --- Confort de lecture --------------------------------------------------- */
+
+/* Un texte de livret se lit dans une église mal éclairée : jamais trop petit. */
+.card-body p, .timeline-body p { line-height: 1.65; }
+
+@media (prefers-reduced-motion: reduce) {
+    .card-wedding:hover, .splash-card:hover, .btn-pro-primary:hover { transform: none; }
+}
+
+/* =========================================================================
+   SYSTÈME PHOTOGRAPHIQUE ET NETTOYAGE VISUEL
+   -------------------------------------------------------------------------
+   Un site de mariage est un média photographique. Jusqu'ici la feuille ne
+   comptait que trois règles d'image et aucune photo de couverture : le site
+   ressemblait à un tableau de bord d'application.
+
+   Cette section pose aussi un vrai système d'ombres. Il y en avait quatorze,
+   d'opacités 0,05 à 0,5, certaines figées en vert — donc fausses sur un
+   thème terracotta ou bleu nuit.
+   ========================================================================= */
+
+/* --- Ombres : trois niveaux, dérivés de l'encre du thème ---------------- */
+
+body {
+    --ombre-1: 0 1px 2px  color-mix(in srgb, var(--vert-sapin) 8%,  transparent),
+               0 2px 8px  color-mix(in srgb, var(--vert-sapin) 6%,  transparent);
+    --ombre-2: 0 2px 4px  color-mix(in srgb, var(--vert-sapin) 7%,  transparent),
+               0 10px 24px color-mix(in srgb, var(--vert-sapin) 10%, transparent);
+    --ombre-3: 0 4px 8px  color-mix(in srgb, var(--vert-sapin) 8%,  transparent),
+               0 22px 50px color-mix(in srgb, var(--vert-sapin) 16%, transparent);
+}
+
+.card, .card-wedding, .location-card,
+.details-section, .menu-card       { box-shadow: var(--ombre-1); }
+.navbar, .banner, .timeline-panel  { box-shadow: var(--ombre-2); }
+.splash-card                       { box-shadow: var(--ombre-3); }
+
+.card-wedding:hover,
+.menu-card:hover                   { box-shadow: var(--ombre-2); }
+
+/* --- Trois tics d'époque à retirer -------------------------------------- */
+
+/*
+   Ombre portée sur du texte : empâte une écriture manuscrite déjà fine.
+   Zoom au survol : rend les images floues, et le survol n'existe pas sur
+   téléphone — là où sont neuf visiteurs sur dix.
+   Verre dépoli : très marqué 2021.
+*/
+.landing-title, .banner h2, .ceremony-heading,
+.details-heading, .urne-heading      { text-shadow: none; }
+
+.card-wedding:hover, .splash-card:hover,
+.gallery-item:hover img, .menu-card:hover { transform: none; }
+
+.card-wedding, .menu-card {
+    transition: box-shadow .22s ease, border-color .22s ease, transform .22s ease;
+}
+/* Un déplacement de 2 px remplace le zoom : discret, et net. */
+.card-wedding:hover { transform: translateY(-2px); border-color: var(--dore-accent); }
+
+.splash-card { backdrop-filter: none; }
+
+/* --- Le bandeau avait perdu son fond ------------------------------------ */
+
+/*
+   `background` était commenté dans la section historique : le bandeau était
+   transparent sur le fond sombre, ce qui n'était pas un choix. On lui rend
+   un fond, dérivé du thème.
+*/
+.banner {
+    background: linear-gradient(150deg,
+                    var(--vert-sapin) 0%,
+                    color-mix(in srgb, var(--vert-sapin) 82%, var(--secondaire)) 100%);
+    position: relative;
+    overflow: hidden;
+}
+
+/* --- Photographie -------------------------------------------------------- */
+
+/*
+   Toutes les images du site passent par ce traitement, choisi dans le thème.
+   Une même galerie en argentique ou en noir et blanc raconte deux mariages
+   différents.
+*/
+.photo,
+.card-wedding img,
+.timeline-body img,
+.gallery-item img,
+.decedent-photo,
+.banner-photo,
+.couverture-image {
+    filter: var(--theme-filtre, none);
+}
+
+/* La couverture : ce que voit l'invité en arrivant. */
+.couverture {
+    position: relative;
+    min-height: 100svh;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    margin-top: -80px;
+}
+
+.couverture-image {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 0;
+}
+
+/* Sans photo, un dégradé construit sur le thème plutôt qu'un trou blanc. */
+.couverture-fond {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background:
+        radial-gradient(circle at 30% 20%, color-mix(in srgb, var(--dore-accent) 30%, transparent) 0%, transparent 55%),
+        radial-gradient(circle at 75% 70%, color-mix(in srgb, var(--secondaire) 35%, transparent) 0%, transparent 55%),
+        linear-gradient(160deg, var(--vert-sapin) 0%, color-mix(in srgb, var(--vert-sapin) 70%, #000) 100%);
+}
+
+/*
+   Voile de lisibilité : sans lui, un texte clair sur une photo claire
+   devient illisible — le cas le plus fréquent avec les photos de mariage,
+   souvent lumineuses.
+*/
+.couverture-voile {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background: linear-gradient(180deg,
+                    color-mix(in srgb, var(--vert-sapin) 45%, transparent) 0%,
+                    color-mix(in srgb, var(--vert-sapin) 20%, transparent) 40%,
+                    color-mix(in srgb, var(--vert-sapin) 78%, transparent) 100%);
+}
+
+.couverture-contenu {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    padding: 2rem 1.5rem;
+    max-width: 640px;
+}
+
+.couverture-contenu .landing-title { color: var(--champagne-clair); }
+.couverture-contenu .landing-lead  { color: color-mix(in srgb, var(--champagne-clair) 88%, transparent); }
+
+.couverture-date {
+    display: inline-block;
+    font-family: var(--font-pro);
+    font-size: clamp(.82rem, 3vw, .95rem);
+    font-weight: 600;
+    letter-spacing: .28em;
+    text-transform: uppercase;
+    color: var(--champagne-clair);
+    padding: .55rem 1.2rem;
+    border: 1px solid color-mix(in srgb, var(--champagne-clair) 40%, transparent);
+    border-radius: var(--r-bouton);
+    margin-top: 1.6rem;
+}
+
+.couverture-lieu {
+    display: block;
+    font-size: .85rem;
+    letter-spacing: .08em;
+    color: color-mix(in srgb, var(--champagne-clair) 70%, transparent);
+    margin-top: .9rem;
+}
+
+/* Invite à faire défiler : sans ce signal, on croit la page terminée. */
+.couverture-suite {
+    position: absolute;
+    bottom: 1.8rem;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 2;
+    color: color-mix(in srgb, var(--champagne-clair) 65%, transparent);
+    font-size: 1.1rem;
+    animation: respire 2.6s ease-in-out infinite;
+}
+
+@keyframes respire {
+    0%, 100% { transform: translate(-50%, 0);    opacity: .55; }
+    50%      { transform: translate(-50%, 6px);  opacity: 1; }
+}
+
+/* Photo de couverture en fond de bandeau, sur l'accueil. */
+.banner-photo {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: .3;
+    z-index: 0;
+}
+.banner > *:not(.banner-photo) { position: relative; z-index: 1; }
+
+/* Les images conservent des proportions stables : une grille de photos de
+   hauteurs inégales donne une impression de désordre. */
+.card-wedding img  { aspect-ratio: 16 / 10; }
+.timeline-body img { aspect-ratio: 3 / 2; object-fit: cover; }
+.decedent-photo    { aspect-ratio: 1; object-fit: cover; }
+
+@media (prefers-reduced-motion: reduce) {
+    .couverture-suite { animation: none; }
+    .card-wedding:hover { transform: none; }
+}
+
+/* =========================================================================
+   BARRE UNIQUE
+   -------------------------------------------------------------------------
+   Remplace le bandeau + le menu, qui empilaient 112 px de chrome. La hauteur
+   est déclarée en variable : elle était codée en dur à deux endroits, et
+   l'encoche des téléphones récents décalait le menu par-dessus le bandeau.
+   ========================================================================= */
+
+body { --h-entete: 60px; }
+
+.entete {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 1000;
+    min-height: var(--h-entete);
+    padding-top: env(safe-area-inset-top);
+    background: color-mix(in srgb, var(--champagne-clair) 90%, transparent);
+    backdrop-filter: saturate(180%) blur(12px);
+    border-bottom: 1px solid color-mix(in srgb, var(--vert-sapin) 8%, transparent);
+    transition: background-color .25s ease, border-color .25s ease;
+}
+
+.entete-piste {
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
+    min-height: var(--h-entete);
+}
+
+.entete-marque { flex: none; text-decoration: none; }
+
+/* Au-dessus de la couverture, la barre s'efface : une bande claire en
+   travers d'une photo plein écran gâche l'effet. */
+.entete--sur-photo {
+    background: transparent;
+    backdrop-filter: none;
+    border-bottom-color: transparent;
+}
+.entete--sur-photo .logo-text { color: var(--champagne-clair); }
+
+/* Elle reprend corps dès qu'on quitte le haut de page. */
+.entete--sur-photo.defile {
+    background: color-mix(in srgb, var(--champagne-clair) 92%, transparent);
+    backdrop-filter: saturate(180%) blur(12px);
+    border-bottom-color: color-mix(in srgb, var(--vert-sapin) 8%, transparent);
+}
+.entete--sur-photo.defile .logo-text { color: var(--vert-sapin); }
+
+/* --- Le menu, dans la barre --------------------------------------------- */
+
+.nav-invite {
+    position: relative;
+    flex: 1;
+    min-width: 0;              /* sans quoi la piste déborde du conteneur */
+}
+
+.nav-invite-piste {
+    display: flex;
+    gap: .25rem;
+    overflow-x: auto;
+    scrollbar-width: none;
+    scroll-snap-type: x proximity;
+    padding-block: .35rem;
+}
+.nav-invite-piste::-webkit-scrollbar { display: none; }
+.nav-invite-piste > a { scroll-snap-align: start; }
+
+.nav-invite-bord {
+    position: absolute;
+    top: 0; right: 0; bottom: 0;
+    width: 42px;
+    pointer-events: none;
+    background: linear-gradient(90deg,
+                    transparent,
+                    color-mix(in srgb, var(--champagne-clair) 92%, transparent));
+}
+.entete--sur-photo:not(.defile) .nav-invite-bord { display: none; }
+
+/* --- Compensations ------------------------------------------------------- */
+
+.main-content { padding-top: calc(var(--h-entete) + 1rem); }
+
+/* La couverture passe sous la barre transparente. */
+.couverture { margin-top: calc((var(--h-entete) + env(safe-area-inset-top)) * -1); }
+
+/* --- Mobile : une seule navigation, en bas ------------------------------- */
+
+@media (max-width: 767px) {
+    /*
+       La barre du haut ne portait que des initiales et une date déjà
+       affichée sur la couverture : trois surfaces de navigation pour neuf
+       pages. On la retire, la barre basse suffit.
+    */
+    .entete { display: none; }
+    .main-content { padding-top: 1rem; padding-bottom: 76px; }
+    .couverture { margin-top: 0; }
+
+    /* Sauf au-dessus de la couverture, où elle ne coûte rien et donne
+       un point de repère. */
+    .entete--sur-photo {
+        display: block;
+        position: absolute;
+        background: transparent;
+        border: 0;
+    }
+}

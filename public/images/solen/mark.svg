@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" role="img" aria-label="Solen">
+  <title>Solen</title>
+  <!-- Deux anneaux : l'union. Leur intersection : la lumière du jour J. -->
+  <circle cx="14" cy="20" r="11" fill="none" stroke="#1B1B2F" stroke-width="1.6"/>
+  <circle cx="26" cy="20" r="11" fill="none" stroke="#1B1B2F" stroke-width="1.6"/>
+  <path d="M20 10.78A11 11 0 0 1 20 29.22 11 11 0 0 1 20 10.78Z" fill="#C99B63"/>
+</svg>

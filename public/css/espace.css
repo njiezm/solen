@@ -1,0 +1,677 @@
+/* =========================================================================
+   Solen — espace organisateur
+   S'appuie sur les jetons de solen.css, qui doit être chargé avant.
+   ========================================================================= */
+
+/* --- 1. STRUCTURE ------------------------------------------------------- */
+
+body.espace {
+    background: var(--surface-warm);
+    font-size: 16px;
+}
+
+.espace-shell {
+    display: grid;
+    grid-template-columns: 268px 1fr;
+    min-height: 100vh;
+}
+
+/* --- 1 bis. BARRE MOBILE ET MENU ESCAMOTABLE ---------------------------- */
+
+/*
+   Sur petit écran, empiler la navigation au-dessus du contenu obligerait à
+   faire défiler tout le menu à chaque page. On la sort du flux : une barre
+   fixe porte un bouton, et le menu glisse par-dessus.
+*/
+.espace-mobile { display: none; }
+
+.espace-voile {
+    position: fixed; inset: 0; z-index: 40;
+    background: rgba(27, 27, 47, .45);
+    backdrop-filter: blur(2px);
+}
+
+@media (max-width: 900px) {
+    .espace-shell { grid-template-columns: 1fr; }
+
+    .espace-mobile {
+        position: sticky; top: 0; z-index: 30;
+        display: flex; align-items: center; gap: .8rem;
+        padding: .7rem 1rem;
+        padding-top: max(.7rem, env(safe-area-inset-top));
+        background: var(--ink);
+        color: var(--surface);
+    }
+    .espace-mobile-titre {
+        flex: 1; font-weight: 600; font-size: .98rem;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .espace-mobile a { color: rgba(252, 250, 247, .7); font-size: .95rem; }
+
+    .espace-burger {
+        display: grid; place-items: center;
+        width: 38px; height: 38px; flex: none;
+        border: 0; border-radius: 10px;
+        background: rgba(255, 255, 255, .1);
+        color: var(--surface); font-size: 1rem; cursor: pointer;
+    }
+
+    .espace-nav {
+        position: fixed; inset: 0 auto 0 0; z-index: 50;
+        width: min(300px, 86vw);
+        transform: translateX(-100%);
+        transition: transform .24s ease;
+        overflow-y: auto;
+        padding-top: max(1.5rem, env(safe-area-inset-top));
+    }
+    body.menu-ouvert .espace-nav { transform: translateX(0); }
+    body.menu-ouvert { overflow: hidden; }
+}
+
+@media (min-width: 901px) {
+    .espace-voile { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .espace-nav { transition: none; }
+}
+
+/* --- 2. NAVIGATION LATÉRALE -------------------------------------------- */
+
+.espace-nav {
+    background: var(--ink);
+    color: rgba(252, 250, 247, .68);
+    padding: 1.5rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.6rem;
+}
+
+.espace-nav .logo { padding-inline: .6rem; color: var(--surface); }
+.espace-nav .logo-word { color: var(--surface); }
+
+.espace-event {
+    padding: .85rem;
+    background: rgba(255, 255, 255, .05);
+    border: 1px solid rgba(255, 255, 255, .09);
+    border-radius: var(--r-md);
+}
+.espace-event .nom {
+    font-family: var(--display);
+    font-size: 1.1rem;
+    color: var(--surface);
+    line-height: 1.2;
+}
+.espace-event .meta {
+    font-size: .74rem;
+    opacity: .6;
+    margin-top: .3rem;
+}
+.espace-event .formule {
+    display: inline-block;
+    margin-top: .55rem;
+    font-size: .64rem;
+    font-weight: 600;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--ink);
+    background: var(--accent);
+    padding: .18rem .5rem;
+    border-radius: var(--r-pill);
+}
+
+.espace-menu { display: grid; gap: .12rem; }
+.espace-menu a {
+    display: flex;
+    align-items: center;
+    gap: .7rem;
+    padding: .6rem .75rem;
+    border-radius: var(--r-sm);
+    font-size: .92rem;
+    color: rgba(252, 250, 247, .72);
+    transition: background-color .15s ease, color .15s ease;
+}
+.espace-menu a i { width: 18px; text-align: center; font-size: .88rem; opacity: .8; }
+.espace-menu a:hover { background: rgba(255, 255, 255, .06); color: var(--surface); }
+.espace-menu a.actif { background: var(--accent); color: var(--ink); font-weight: 600; }
+.espace-menu a.actif i { opacity: 1; }
+
+.espace-menu .titre {
+    font-size: .66rem;
+    font-weight: 600;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    opacity: .42;
+    padding: 1rem .75rem .35rem;
+}
+
+.espace-pied { margin-top: auto; font-size: .82rem; }
+.espace-pied a, .espace-pied button {
+    display: flex; align-items: center; gap: .6rem;
+    width: 100%;
+    padding: .55rem .75rem;
+    border: 0; background: transparent;
+    color: rgba(252, 250, 247, .55);
+    font: inherit; text-align: left; cursor: pointer;
+    border-radius: var(--r-sm);
+}
+.espace-pied a:hover, .espace-pied button:hover { color: var(--surface); background: rgba(255,255,255,.06); }
+
+/* --- 3. CONTENU --------------------------------------------------------- */
+
+.espace-main {
+    padding: clamp(1.2rem, 4vw, 3rem);
+    padding-bottom: max(3rem, env(safe-area-inset-bottom));
+    max-width: 1000px;
+    width: 100%;
+    min-width: 0; /* sans quoi une table large déborde de la grille */
+}
+
+.espace-entete { margin-bottom: clamp(1.4rem, 3vw, 2rem); }
+.espace-entete h1 {
+    font-size: clamp(1.55rem, 3.5vw, 2.3rem);
+    margin-bottom: .3rem;
+    overflow-wrap: break-word;
+}
+.espace-entete p { color: var(--ink-mute); margin: 0; max-width: 62ch; }
+
+/* Lien de retour : au-dessus du titre, là où l'œil le cherche. */
+.lien-retour {
+    display: inline-flex;
+    align-items: center;
+    gap: .45rem;
+    font-size: .84rem;
+    font-weight: 500;
+    color: var(--ink-mute);
+    margin-bottom: .7rem;
+    padding: .25rem .6rem .25rem .3rem;
+    border-radius: var(--r-pill);
+    transition: color .15s ease, background-color .15s ease;
+}
+.lien-retour:hover { color: var(--ink); background: var(--surface-card); }
+.lien-retour i { font-size: .72rem; }
+
+.carte {
+    background: var(--surface-card);
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    padding: clamp(1.2rem, 2.5vw, 1.8rem);
+    margin-bottom: 1.2rem;
+}
+.carte > h2 {
+    font-family: var(--body);
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: .3rem;
+}
+.carte > .carte-aide {
+    font-size: .86rem;
+    color: var(--ink-mute);
+    margin-bottom: 1.4rem;
+}
+
+/* --- 4. CHAMPS GÉNÉRÉS -------------------------------------------------- */
+
+.grille-champs {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1.1rem;
+}
+.grille-champs .champ[data-type="texte_long"],
+.grille-champs .champ[data-type="riche"],
+.grille-champs .champ[data-type="choix_multiple"] { grid-column: 1 / -1; }
+
+.champ label {
+    display: block;
+    font-size: .82rem;
+    font-weight: 600;
+    color: var(--ink);
+    margin-bottom: .35rem;
+}
+.champ-requis { color: var(--accent-deep); }
+
+.champ input[type=text], .champ input[type=email], .champ input[type=url],
+.champ input[type=tel], .champ input[type=number], .champ input[type=date],
+.champ input[type=time], .champ input[type=datetime-local],
+.champ select, .champ textarea {
+    width: 100%;
+    font: inherit;
+    font-size: .93rem;
+    padding: .6rem .8rem;
+    border: 1px solid var(--line);
+    border-radius: var(--r-sm);
+    background: var(--surface);
+    color: var(--ink);
+}
+.champ textarea { resize: vertical; min-height: 92px; line-height: 1.5; }
+.champ input:focus, .champ select:focus, .champ textarea:focus {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+    border-color: transparent;
+}
+.champ input[type=color] {
+    width: 56px; height: 38px; padding: 2px;
+    border: 1px solid var(--line); border-radius: var(--r-sm);
+    background: var(--surface); cursor: pointer;
+}
+.champ input[type=file] { font-size: .85rem; }
+
+.champ-suffixe { display: flex; align-items: center; gap: .5rem; }
+.champ-suffixe input { flex: 1; }
+.champ-suffixe span { color: var(--ink-mute); font-size: .9rem; }
+
+.champ-bascule {
+    display: inline-flex !important;
+    align-items: center;
+    gap: .5rem;
+    font-weight: 500 !important;
+    font-size: .9rem !important;
+    cursor: pointer;
+    margin-bottom: 0 !important;
+}
+.champ-bascule input { accent-color: var(--accent-deep); width: 16px; height: 16px; }
+
+.champ-cases { display: grid; gap: .45rem; }
+
+.champ-apercu {
+    display: flex; align-items: center; gap: .9rem;
+    margin-bottom: .55rem;
+}
+.champ-apercu img {
+    width: 76px; height: 76px; object-fit: cover;
+    border-radius: var(--r-sm); border: 1px solid var(--line);
+}
+.champ-supprimer { font-size: .82rem !important; color: var(--ink-mute); }
+
+.champ-aide  { font-size: .78rem; color: var(--ink-mute); margin: .35rem 0 0; }
+.champ-erreur { font-size: .78rem; color: #B3261E; margin: .35rem 0 0; }
+.champ--erreur input, .champ--erreur select, .champ--erreur textarea { border-color: #B3261E; }
+
+.actions {
+    display: flex; flex-wrap: wrap; gap: .7rem; align-items: center;
+    margin-top: 1.6rem; padding-top: 1.4rem;
+    border-top: 1px solid var(--line);
+}
+.actions .pousse { margin-left: auto; }
+
+/* --- 5. LISTES DE MODULES ET DE BLOCS ---------------------------------- */
+
+.liste { display: grid; gap: .6rem; }
+
+.ligne {
+    display: flex; align-items: center; gap: 1rem;
+    background: var(--surface-card);
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    padding: .9rem 1.1rem;
+}
+.ligne.inactive { opacity: .55; }
+.ligne .poignee { color: var(--ink-mute); cursor: grab; font-size: .85rem; }
+.ligne .icone {
+    width: 34px; height: 34px; flex: none;
+    display: grid; place-items: center;
+    border-radius: 9px;
+    background: var(--accent-wash); color: var(--accent-deep);
+    font-size: .85rem;
+}
+.ligne .corps { flex: 1; min-width: 0; }
+.ligne .corps strong { display: block; font-size: .93rem; font-weight: 600; color: var(--ink); }
+.ligne .corps span {
+    display: block; font-size: .8rem; color: var(--ink-mute);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.ligne .outils { display: flex; align-items: center; gap: .5rem; flex: none; flex-wrap: wrap; }
+
+/*
+   Sur mobile, une ligne « icône + texte + quatre boutons » déborde. On passe
+   en deux étages : l'information d'abord, les actions dessous, alignées à
+   gauche et assez grandes pour le pouce.
+*/
+@media (max-width: 620px) {
+    .ligne {
+        flex-wrap: wrap;
+        gap: .7rem;
+        padding: .9rem;
+    }
+    .ligne .corps { flex: 1 1 100%; order: 2; min-width: 0; }
+    .ligne .corps span { white-space: normal; }
+    .ligne .icone { order: 1; }
+    .ligne .poignee { order: 1; }
+    .ligne .outils { flex: 1 1 100%; order: 3; }
+    .ligne .outils .mini,
+    .ligne .outils button { min-height: 38px; }
+}
+
+.mini {
+    font-size: .78rem; font-weight: 600;
+    padding: .38rem .8rem; border-radius: var(--r-pill);
+    border: 1px solid var(--line); background: var(--surface);
+    color: var(--ink); cursor: pointer;
+}
+.mini:hover { border-color: var(--ink); }
+.mini--danger { color: #B3261E; border-color: #F0D3D0; }
+.mini--danger:hover { border-color: #B3261E; }
+
+.interrupteur { position: relative; display: inline-block; width: 40px; height: 22px; flex: none; }
+.interrupteur input { opacity: 0; width: 0; height: 0; }
+.interrupteur span {
+    position: absolute; inset: 0; cursor: pointer;
+    background: #D5CFC4; border-radius: var(--r-pill);
+    transition: background-color .18s ease;
+}
+.interrupteur span::before {
+    content: ''; position: absolute;
+    width: 16px; height: 16px; left: 3px; top: 3px;
+    background: #fff; border-radius: 50%;
+    transition: transform .18s ease;
+}
+.interrupteur input:checked + span { background: var(--live); }
+.interrupteur input:checked + span::before { transform: translateX(18px); }
+.interrupteur input:disabled + span { opacity: .4; cursor: not-allowed; }
+
+/* --- 6. DIVERS ---------------------------------------------------------- */
+
+.alerte {
+    border-radius: var(--r-sm);
+    padding: .8rem 1rem;
+    font-size: .88rem;
+    margin-bottom: 1.4rem;
+}
+.alerte--ok     { background: var(--live-wash);  color: #1F5A43; }
+.alerte--info   { background: var(--accent-wash); color: var(--accent-deep); }
+.alerte--erreur { background: #FBEAE8; color: #B3261E; }
+
+.vide {
+    text-align: center;
+    padding: 2.5rem 1rem;
+    color: var(--ink-mute);
+    border: 1px dashed var(--line);
+    border-radius: var(--r-md);
+    font-size: .9rem;
+}
+
+.tuiles {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: .8rem;
+    margin-bottom: 1.4rem;
+}
+.tuile {
+    background: var(--surface-card);
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    padding: 1.1rem;
+}
+.tuile .nombre { font-family: var(--display); font-size: 1.9rem; color: var(--ink); line-height: 1; }
+.tuile .quoi { font-size: .8rem; color: var(--ink-mute); margin-top: .3rem; }
+
+/* --- 7. CONFORT SUR PETIT ÉCRAN ---------------------------------------- */
+
+@media (max-width: 620px) {
+    .tuiles { grid-template-columns: repeat(2, 1fr); gap: .6rem; }
+    .tuile  { padding: .9rem; }
+    .tuile .nombre { font-size: 1.5rem; }
+
+    .grille-champs { grid-template-columns: 1fr; }
+
+    /* Les boutons d'action passent pleine largeur : plus faciles à viser. */
+    .actions { flex-direction: column; align-items: stretch; }
+    .actions .btn { justify-content: center; }
+    .actions .pousse { margin-left: 0; }
+
+    .carte { padding: 1.1rem; }
+}
+
+/*
+   Les zones de saisie sous 16 px déclenchent un zoom automatique sur iOS,
+   qui décale toute la page. On les tient au-dessus de ce seuil.
+*/
+@media (max-width: 820px) {
+    .champ input, .champ select, .champ textarea,
+    .form-control, .form-select { font-size: 16px; }
+}
+
+/* Une table large doit défiler dans son cadre, jamais pousser la page. */
+.carte table { max-width: 100%; }
+.table-responsive { -webkit-overflow-scrolling: touch; }
+
+/* Cibles tactiles : 38 px minimum, recommandation d'accessibilité. */
+@media (pointer: coarse) {
+    .mini, .espace-menu a, .btn { min-height: 38px; }
+    .interrupteur { width: 46px; height: 26px; }
+    .interrupteur span::before { width: 20px; height: 20px; }
+    .interrupteur input:checked + span::before { transform: translateX(20px); }
+}
+
+/* --- 8. PROGRESSION DE LA PRÉPARATION ---------------------------------- */
+
+.progression { border-color: var(--accent); }
+
+.progression-tete {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.progression-chiffre {
+    font-family: var(--display);
+    font-size: 2.6rem;
+    line-height: 1;
+    color: var(--accent-deep);
+    flex: none;
+}
+.progression-chiffre small { font-size: 1.1rem; opacity: .7; }
+
+.progression-piste {
+    height: 8px;
+    background: var(--surface-warm);
+    border-radius: 999px;
+    overflow: hidden;
+}
+.progression-barre {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent-deep), var(--accent));
+    border-radius: 999px;
+    transition: width .5s ease;
+}
+
+/* Une étape franchie s'efface : l'œil va vers ce qu'il reste à faire. */
+.etape-prep.faite { opacity: .55; }
+.etape-prep.faite .icone { background: var(--live-wash); color: var(--live); }
+
+@media (max-width: 620px) {
+    .progression-tete { flex-direction: column-reverse; align-items: flex-start; gap: .4rem; }
+    .progression-chiffre { font-size: 2.1rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .progression-barre { transition: none; }
+}
+
+/* --- 9. PANNEAUX DÉPLIANTS --------------------------------------------- */
+
+/*
+   Remplacent les modales Bootstrap des écrans hérités : celles-ci ne
+   fonctionnaient pas, faute de charger le JavaScript de Bootstrap. Un
+   <details> natif marche partout, sans dépendance, et se comporte bien
+   au clavier comme sur mobile.
+*/
+
+.depliant {
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    background: var(--surface-card);
+    margin-bottom: .6rem;
+    overflow: hidden;
+}
+.depliant[open] { border-color: var(--accent); box-shadow: var(--shadow-sm); }
+
+.depliant > summary {
+    display: flex;
+    align-items: center;
+    gap: .9rem;
+    padding: .9rem 1.1rem;
+    cursor: pointer;
+    list-style: none;
+    min-height: 46px;
+}
+.depliant > summary::-webkit-details-marker { display: none; }
+.depliant > summary::after {
+    content: '\f078';                    /* chevron bas */
+    font-family: 'Font Awesome 6 Free';
+    font-weight: 900;
+    font-size: .68rem;
+    color: var(--ink-mute);
+    margin-left: auto;
+    transition: transform .18s ease;
+}
+.depliant[open] > summary::after { transform: rotate(180deg); }
+.depliant > summary:hover { background: var(--surface-warm); }
+
+.depliant-corps {
+    padding: 0 1.1rem 1.1rem;
+    border-top: 1px solid var(--line);
+    padding-top: 1.1rem;
+}
+
+/* Le contenu d'une ligne dépliante reprend la mise en forme des listes. */
+.depliant .titre-ligne { flex: 1; min-width: 0; }
+.depliant .titre-ligne strong {
+    display: block; font-size: .93rem; font-weight: 600; color: var(--ink);
+    overflow: hidden; text-overflow: ellipsis;
+}
+.depliant .titre-ligne span {
+    display: block; font-size: .8rem; color: var(--ink-mute);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+/* --- 10. FORMULAIRE D'AJOUT EN TÊTE DE LISTE --------------------------- */
+
+.ajout {
+    background: var(--surface-warm);
+    border: 1px dashed var(--line);
+    border-radius: var(--r-md);
+    margin-bottom: 1.4rem;
+    overflow: hidden;
+}
+.ajout > summary {
+    display: flex; align-items: center; gap: .6rem;
+    padding: .85rem 1.1rem;
+    cursor: pointer; list-style: none;
+    font-size: .92rem; font-weight: 600; color: var(--ink);
+    min-height: 46px;
+}
+.ajout > summary::-webkit-details-marker { display: none; }
+.ajout[open] { border-style: solid; border-color: var(--accent); background: var(--surface-card); }
+.ajout-corps { padding: 0 1.1rem 1.2rem; }
+
+/* --- 11. ÉTAT VIDE ------------------------------------------------------ */
+
+.vide-illustre {
+    text-align: center;
+    padding: 2.6rem 1.2rem;
+    border: 1px dashed var(--line);
+    border-radius: var(--r-md);
+    color: var(--ink-mute);
+}
+.vide-illustre i { font-size: 2rem; opacity: .3; display: block; margin-bottom: .8rem; }
+.vide-illustre p { margin: 0 0 1rem; font-size: .92rem; }
+
+/* --- 12. GRILLE DE VIGNETTES ------------------------------------------- */
+
+.vignettes {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: .9rem;
+}
+.vignette {
+    background: var(--surface-card);
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    overflow: hidden;
+}
+.vignette img { width: 100%; aspect-ratio: 1; object-fit: cover; display: block; }
+.vignette-pied { padding: .6rem .7rem; font-size: .8rem; }
+.vignette-pied strong { display: block; color: var(--ink); font-weight: 600; }
+.vignette-pied span { color: var(--ink-mute); font-size: .74rem; }
+
+@media (max-width: 480px) {
+    .vignettes { grid-template-columns: repeat(2, 1fr); gap: .6rem; }
+}
+
+/* --- Écran Jeux ---------------------------------------------------------- */
+
+.mini.choisi { background: var(--live); border-color: var(--live); color: #fff; }
+.choix-reponse { min-width: 4.5rem; }
+
+.ajout-ligne { display: flex; gap: .6rem; flex-wrap: wrap; margin-top: 1rem; }
+.ajout-ligne input[type=text], .ajout-ligne input[type=file] {
+    flex: 1 1 240px; min-height: 42px; padding: .55rem .8rem;
+    border: 1px solid var(--line); border-radius: 10px; background: var(--surface-card); font: inherit;
+}
+
+.grille-jeu { display: grid; gap: 1.2rem; }
+@media (min-width: 900px) { .grille-jeu { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; } }
+.grille-jeu textarea { font-family: ui-monospace, Consolas, monospace; font-size: .86rem; }
+
+.apercu-grille {
+    display: grid; grid-template-columns: repeat(var(--colonnes), minmax(0, 1fr)); gap: 2px;
+    max-width: calc(var(--colonnes) * 28px);
+}
+.apercu-grille span {
+    aspect-ratio: 1; display: grid; place-items: center;
+    font: 700 .62rem/1 var(--body, system-ui); color: var(--ink);
+}
+.apercu-grille span.pleine { background: var(--surface-card); border: 1px solid var(--line); border-radius: 2px; }
+.grille-jeu > *, .ajout-ligne > * { min-width: 0; }
+.apercu-grille { max-width: min(100%, calc(var(--colonnes) * 28px)); }
+.ajout-ligne input[type=file] { max-width: 100%; }
+
+/* --- Bandeau « équipe Solen » ------------------------------------------- */
+.bandeau-solen {
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .6rem 1rem;
+    margin: 0 0 1.4rem; padding: .75rem 1rem;
+    border-radius: 12px; background: var(--ink); color: var(--surface);
+    font-size: .86rem;
+}
+.bandeau-solen i { margin-right: .4rem; color: var(--accent); }
+.bandeau-solen a { color: var(--surface); font-weight: 600; text-decoration: none; white-space: nowrap; }
+.bandeau-solen a:hover { text-decoration: underline; }
+
+/* --- Choix du thème : aperçus réels ------------------------------------- */
+.themes-filtres { display: flex; flex-wrap: wrap; gap: .4rem; margin: 0 0 1rem; }
+.themes-filtres button { padding: .4rem .85rem; border: 1px solid var(--line); border-radius: 999px; background: var(--surface-card); font: 600 .8rem/1 var(--body, system-ui); cursor: pointer; }
+.themes-filtres button.actif { background: var(--ink); border-color: var(--ink); color: var(--surface); }
+
+.themes-choix { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: .8rem; }
+.theme-option { position: relative; display: grid; gap: .45rem; cursor: pointer; }
+.theme-option input { position: absolute; opacity: 0; pointer-events: none; }
+.theme-option .legende { display: flex; justify-content: space-between; gap: .5rem; font-size: .84rem; font-weight: 600; }
+.theme-option .legende small { font-weight: 400; color: var(--ink-mute); }
+.theme-option .apercu-theme { outline: 2px solid transparent; outline-offset: 2px; transition: outline-color .15s ease, transform .15s ease; }
+.theme-option:hover .apercu-theme { transform: translateY(-2px); }
+.theme-option input:checked ~ .apercu-theme { outline-color: var(--accent-deep, #8D6D45); }
+.theme-option input:focus-visible ~ .apercu-theme { outline-color: var(--ink); }
+.theme-option input:checked ~ .legende::after { content: '✓ choisi'; color: var(--live); font-size: .78rem; }
+
+.retouches { display: grid; gap: 1.2rem; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); align-items: start; }
+.retouches .apercu-theme { max-width: 320px; }
+.champ input[type=color] { width: 100%; height: 42px; padding: 2px; }
+
+/* --- Facturation ---------------------------------------------------------- */
+.grille-doc { display: grid; gap: 1.2rem; }
+@media (min-width: 1100px) { .grille-doc { grid-template-columns: minmax(0, 1.5fr) minmax(320px, 1fr); align-items: start; } }
+.grille-doc input[type=text], .grille-doc input[type=email], .grille-doc input[type=date], .grille-doc select, .grille-doc textarea,
+.ligne-facture input {
+    width: 100%; min-height: 38px; padding: .45rem .7rem; border: 1px solid var(--line); border-radius: 8px;
+    background: var(--surface-card); font: inherit; font-size: .9rem;
+}
+.ligne-facture .outils input { width: auto; }
+.visuellement-cache { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+
+.totaux-direct { margin: 1rem 0 0 auto; min-width: 280px; border-collapse: collapse; }
+.totaux-direct td { padding: .45rem .2rem; }
+.totaux-direct td:last-child { text-align: right; font-variant-numeric: tabular-nums; }
+.totaux-direct .fort td { border-top: 2px solid var(--ink); font-weight: 700; font-size: 1.15rem; }
