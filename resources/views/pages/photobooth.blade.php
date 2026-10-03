@@ -20,6 +20,10 @@
     }
     /* La caméra frontale est plus naturelle en miroir. */
     .booth-scene video { transform: scaleX(-1); }
+    /* Cadre à fenêtre : la scène prend le format du cadre, la caméra
+       se loge dans sa zone transparente. */
+    .booth-scene.avec-fenetre { background: #fff; }
+    .booth-scene.avec-fenetre video { position: absolute; }
     .booth-cadre {
         position: absolute; inset: 0; width: 100%; height: 100%;
         object-fit: cover; pointer-events: none;
@@ -142,6 +146,7 @@
         token:     b.dataset.token,
     };
 
+    const scene   = document.querySelector('.booth-scene');
     const flux    = document.getElementById('flux');
     const rendu   = document.getElementById('rendu');
     const apercu  = document.getElementById('apercu');
@@ -186,6 +191,67 @@
         }
     }
 
+    // ── Cadre ────────────────────────────────────────────────────────
+    // Un cadre plein (bordure seule) se pose sur la photo, comme avant.
+    // Un cadre à fenêtre (un faire-part, un visuel avec prénoms et date)
+    // impose son format : la photo est logée dans sa zone transparente.
+    let cadreImg = null;
+    let fenetre  = null; // { x, y, l, h } en fractions du cadre
+
+    const charger = (src) => new Promise((resolve) => {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload  = () => resolve(img);
+        img.onerror = () => resolve(null);
+        img.src = src;
+    });
+
+    async function analyserCadre() {
+        if (!conf.cadre) return;
+        cadreImg = await charger(conf.cadre);
+        if (!cadreImg) return;
+
+        // Analyse sur une miniature : la fenêtre se repère très bien à 240 px.
+        const l = 240;
+        const h = Math.round(l * cadreImg.naturalHeight / cadreImg.naturalWidth);
+        const c = document.createElement('canvas');
+        c.width = l; c.height = h;
+        const ctx = c.getContext('2d');
+        ctx.drawImage(cadreImg, 0, 0, l, h);
+
+        let donnees;
+        try { donnees = ctx.getImageData(0, 0, l, h).data; } catch (e) { return; }
+
+        let x0 = l, y0 = h, x1 = -1, y1 = -1;
+        for (let y = 0; y < h; y++) {
+            for (let x = 0; x < l; x++) {
+                if (donnees[(y * l + x) * 4 + 3] < 20) {
+                    if (x < x0) x0 = x; if (x > x1) x1 = x;
+                    if (y < y0) y0 = y; if (y > y1) y1 = y;
+                }
+            }
+        }
+
+        // Pas de transparence, ou transparent presque partout : cadre plein.
+        if (x1 < 0 || (x1 - x0) * (y1 - y0) > l * h * 0.9) return;
+
+        fenetre = { x: x0 / l, y: y0 / h, l: (x1 - x0 + 1) / l, h: (y1 - y0 + 1) / h };
+
+        scene.classList.add('avec-fenetre');
+        scene.style.aspectRatio = `${cadreImg.naturalWidth} / ${cadreImg.naturalHeight}`;
+        Object.assign(flux.style, {
+            left:   `${fenetre.x * 100}%`, top:    `${fenetre.y * 100}%`,
+            width:  `${fenetre.l * 100}%`, height: `${fenetre.h * 100}%`,
+        });
+    }
+
+    /** Dessine une pose en la recadrant pour remplir exactement la zone. */
+    function couvrir(ctx, pose, x, y, l, h) {
+        const ratio = Math.max(l / pose.width, h / pose.height);
+        const sl = l / ratio, sh = h / ratio;
+        ctx.drawImage(pose, (pose.width - sl) / 2, (pose.height - sh) / 2, sl, sh, x, y, l, h);
+    }
+
     // ── Capture d'une pose ───────────────────────────────────────────
     function capturer() {
         const c = document.createElement('canvas');
@@ -220,6 +286,8 @@
 
     // ── Montage final ────────────────────────────────────────────────
     async function composer(poses) {
+        if (fenetre) return composerDansFenetre(poses);
+
         const l = poses[0].width;
         const h = poses[0].height;
         const marge = Math.round(l * 0.03);
@@ -253,6 +321,35 @@
             ctx.textAlign = 'center';
             ctx.fillStyle = 'rgba(0,0,0,.55)';
             ctx.fillText(conf.signature, c.width / 2, c.height - marge * 0.9);
+        }
+
+        return c;
+    }
+
+    function composerDansFenetre(poses) {
+        const L = Math.min(1440, cadreImg.naturalWidth);
+        const H = Math.round(L * cadreImg.naturalHeight / cadreImg.naturalWidth);
+        const c = document.createElement('canvas');
+        c.width = L; c.height = H;
+
+        const ctx = c.getContext('2d');
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, L, H);
+
+        // Plusieurs poses se partagent la fenêtre, empilées.
+        const fx = fenetre.x * L, fy = fenetre.y * H, fl = fenetre.l * L, fh = fenetre.h * H;
+        const marge   = poses.length > 1 ? Math.round(fl * 0.02) : 0;
+        const hauteur = (fh - marge * (poses.length - 1)) / poses.length;
+
+        poses.forEach((pose, i) => couvrir(ctx, pose, fx, fy + i * (hauteur + marge), fl, hauteur));
+        ctx.drawImage(cadreImg, 0, 0, L, H);
+
+        if (conf.filigrane && conf.signature) {
+            const taille = Math.max(14, Math.round(fl * 0.035));
+            ctx.font = `600 ${taille}px Inter, system-ui, sans-serif`;
+            ctx.textAlign = 'center';
+            ctx.fillStyle = 'rgba(255,255,255,.85)';
+            ctx.fillText(conf.signature, fx + fl / 2, fy + fh - taille * 0.8);
         }
 
         return c;
@@ -354,6 +451,7 @@
     bRecommencer.addEventListener('click', reprendre);
     bValider.addEventListener('click', envoyer);
 
+    analyserCadre();
     demarrerCamera();
 })();
 </script>

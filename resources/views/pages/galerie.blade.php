@@ -47,8 +47,8 @@
                     <input type="text" name="prenom" class="saisie" value="{{ old('prenom') }}" autocomplete="given-name" required>
                 </label>
                 <label class="champ">
-                    <span>Nom</span>
-                    <input type="text" name="nom" class="saisie" value="{{ old('nom') }}" autocomplete="family-name" required>
+                    <span>Nom <small>(facultatif)</small></span>
+                    <input type="text" name="nom" class="saisie" value="{{ old('nom') }}" autocomplete="family-name">
                 </label>
             </div>
 

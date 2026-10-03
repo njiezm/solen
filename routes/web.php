@@ -255,6 +255,9 @@ Route::prefix('mariage/{event}')->middleware(['event', 'acces'])->group(function
     Route::get('/urne/annule', [UrneController::class, 'cancel'])->name('urne.cancel');
 
     // Jeux : ouverts d'office dès que les mariés les ont cochés.
+    Route::get('/jeux/quiz', [JeuxController::class, 'quiz'])->name('jeux.quiz');
+    Route::post('/jeux/quiz', [JeuxController::class, 'submitQuiz'])->name('jeux.submitQuiz');
+
     Route::get('/jeux/qui-de-nous-2', [JeuxController::class, 'quiDeux'])->name('jeux.quiDeux');
     Route::post('/jeux/qui-de-nous-2', [JeuxController::class, 'submitQuiDeux'])->name('jeux.submitQuiDeux');
 
@@ -272,7 +275,7 @@ Route::prefix('mariage/{event}')->middleware(['event', 'acces'])->group(function
 
     Route::get('/jeux/classement', [JeuxController::class, 'classement'])->name('jeux.classement');
     Route::get('/jeux/{jeu}/resultat', [JeuxController::class, 'afficherResultat'])
-        ->whereIn('jeu', ['qui_deux', 'mots_croises', 'memory', 'puzzle', 'chasse_photo'])
+        ->whereIn('jeu', ['quiz', 'qui_deux', 'mots_croises', 'memory', 'puzzle', 'chasse_photo'])
         ->name('jeux.resultat');
 });
 
@@ -333,6 +336,8 @@ Route::prefix('mariage/{event}/espace')
             Route::get('/', [EspaceJeuxController::class, 'index'])->name('index');
             Route::post('/reglages', [EspaceJeuxController::class, 'reglages'])->name('reglages');
             Route::post('/basculer/{cle}', [EspaceJeuxController::class, 'basculer'])->name('basculer');
+
+            Route::post('/quiz', [EspaceJeuxController::class, 'enregistrerQuiz'])->name('quiz');
 
             Route::post('/questions', [EspaceJeuxController::class, 'ajouterQuestion'])->name('questions.ajouter');
             Route::post('/questions/{id}/reponse', [EspaceJeuxController::class, 'repondre'])->whereNumber('id')->name('questions.repondre');

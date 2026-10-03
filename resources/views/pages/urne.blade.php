@@ -4,14 +4,17 @@
 @section('content')
 
 <header class="page-tete">
-    <p class="page-tete-sur">Liste de mariage</p>
+    {{-- Sous un titre choisi par le couple (« Urne »), ce surtitre le contredirait. --}}
+    @unless (app(App\Solen\NavigationInvite::class)->titreCagnotte($event))
+        <p class="page-tete-sur">Liste de mariage</p>
+    @endunless
     <h1>{{ $titre }}</h1>
     @if ($introduction)
         <p>{!! nl2br(e($introduction)) !!}</p>
     @endif
 </header>
 
-@if ($objectif)
+@if ($objectif && ! $lienExterne)
     @php $part = min(100, (int) round($collecte / max((float) $objectif, 1) * 100)); @endphp
     <section class="bloc" style="margin-bottom:1.25rem">
         <div class="jauge-chiffres">
@@ -31,7 +34,14 @@
     </div>
 @endif
 
-@if (! $ouvert)
+@if ($lienExterne)
+    <section class="bloc" style="text-align:center">
+        <p>Notre cagnotte est en ligne : un clic, et vous y êtes.</p>
+        <a href="{{ $lienExterne }}" class="bouton bouton--plein" target="_blank" rel="noopener">
+            <i class="fa-solid fa-gift" aria-hidden="true"></i> Participer à la cagnotte
+        </a>
+    </section>
+@elseif (! $ouvert)
     <div class="vide">
         <i class="fa-solid fa-hourglass-half" aria-hidden="true"></i>
         La cagnotte ouvrira très bientôt. Merci de votre patience.

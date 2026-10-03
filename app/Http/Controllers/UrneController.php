@@ -46,6 +46,9 @@ class UrneController extends Controller
                 : collect(),
             'afficherMontants' => (bool) $event->reglage('cagnotte', 'afficher_montants'),
             'ouvert'       => $this->stripe->pretAEncaisser($event),
+            // Une cagnotte déjà ouverte ailleurs (Leetchi, Lydia…) prend le
+            // pas sur l'encaissement par Solen : on y envoie les invités.
+            'lienExterne'  => $event->reglage('cagnotte', 'lien_externe'),
         ]);
     }
 

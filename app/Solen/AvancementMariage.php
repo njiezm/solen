@@ -95,7 +95,8 @@ class AvancementMariage
                 'cle'   => 'cagnotte',
                 'titre' => 'Raccorder votre compte bancaire',
                 'aide'  => 'Sans cela, la cagnotte reste fermée.',
-                'fait'  => (bool) $event->stripe_paiements_actifs,
+                // Une cagnotte tenue ailleurs (Leetchi…) ne demande aucun raccordement.
+                'fait'  => (bool) $event->stripe_paiements_actifs || (bool) $event->reglage('cagnotte', 'lien_externe'),
                 'route' => 'espace.paiements',
                 'concerne' => $event->aModule('cagnotte'),
             ],

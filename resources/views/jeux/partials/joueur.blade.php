@@ -14,7 +14,9 @@
         <input class="saisie" name="prenom" value="{{ old('prenom', $joueur['prenom'] ?? '') }}" autocomplete="given-name" required>
     </label>
     <label class="champ">
-        <span>Nom</span>
+        {{-- Le classement réunit les scores par prénom + nom : l'initiale
+             suffit à ne pas mélanger deux Marie. --}}
+        <span>Nom <small>(ou initiale)</small></span>
         <input class="saisie" name="nom" value="{{ old('nom', $joueur['nom'] ?? '') }}" autocomplete="family-name" required>
     </label>
 </div>

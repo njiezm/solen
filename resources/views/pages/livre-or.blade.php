@@ -32,8 +32,8 @@
                 @error('prenom') <span class="champ-erreur">{{ $message }}</span> @enderror
             </label>
             <label class="champ">
-                <span>Nom</span>
-                <input type="text" name="nom" class="saisie" value="{{ old('nom') }}" autocomplete="family-name" required>
+                <span>Nom <small>(facultatif)</small></span>
+                <input type="text" name="nom" class="saisie" value="{{ old('nom') }}" autocomplete="family-name">
                 @error('nom') <span class="champ-erreur">{{ $message }}</span> @enderror
             </label>
         </div>

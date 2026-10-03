@@ -46,6 +46,62 @@
     </div>
 </div>
 
+{{-- ─────────────────────────────────────────────── Quiz des mariés ── --}}
+@php
+    // Dix lignes au départ, moitié sur chacun ; deux de rab ensuite.
+    $lignesQuiz = max(10, min($quizMax, $quiz->count() + 2));
+    $quizDefaut = fn ($i) => ['sujet' => $prenoms[$i < $lignesQuiz / 2 ? 0 : 1], 'question' => '', 'choix' => ['', '', ''], 'bonne' => null];
+@endphp
+<div class="carte" id="quiz">
+    <h2>Quiz des mariés</h2>
+    <p class="carte-aide">
+        Une question sur l’un de vous deux, trois propositions, et cochez la bonne.
+        Les invités verront les propositions dans le désordre. Une question incomplète n’est pas posée.
+        <strong>{{ $quizPretes }}</strong> question{{ $quizPretes > 1 ? 's' : '' }} prête{{ $quizPretes > 1 ? 's' : '' }}
+        @if ($quizPretes < $questionsMin) — il en faut au moins {{ $questionsMin }} pour ouvrir le jeu. @endif
+    </p>
+
+    <form method="POST" action="{{ route('espace.jeux.quiz') }}">
+        @csrf
+        @for ($i = 0; $i < $lignesQuiz; $i++)
+            @php $q = $quiz[$i] ?? $quizDefaut($i); @endphp
+            <fieldset class="quiz-saisie">
+                <legend>Question {{ $i + 1 }}</legend>
+                <div class="quiz-saisie-tete">
+                    <select name="quiz[{{ $i }}][sujet]" aria-label="Sur qui porte la question {{ $i + 1 }}">
+                        @foreach ($prenoms as $prenom)
+                            <option value="{{ $prenom }}" @selected($q['sujet'] === $prenom)>Sur {{ $prenom }}</option>
+                        @endforeach
+                    </select>
+                    <input type="text" name="quiz[{{ $i }}][question]" value="{{ $q['question'] }}" maxlength="255"
+                           placeholder="Quel était le nom de danseur de {{ $q['sujet'] ?? $prenoms[0] }} à l’époque ?">
+                </div>
+                @foreach ($q['choix'] as $c => $choix)
+                    <label class="quiz-saisie-choix">
+                        <input type="radio" name="quiz[{{ $i }}][bonne]" value="{{ $c }}" @checked($q['bonne'] === $c)
+                               title="Bonne réponse">
+                        <input type="text" name="quiz[{{ $i }}][choix][{{ $c }}]" value="{{ $choix }}" maxlength="150"
+                               placeholder="Proposition {{ $c + 1 }}">
+                    </label>
+                @endforeach
+            </fieldset>
+        @endfor
+        <p class="carte-aide">Le rond coché désigne la bonne réponse.</p>
+        <div class="actions"><button class="btn btn-primary">Enregistrer le quiz</button></div>
+    </form>
+</div>
+
+<style>
+    .quiz-saisie { border: 1px solid rgba(0,0,0,.1); border-radius: 12px; padding: .9rem 1rem 1rem; margin: 0 0 .9rem; }
+    .quiz-saisie legend { float: none; width: auto; font-size: .8rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; padding: 0 .4rem; margin: 0; }
+    .quiz-saisie input[type=text], .quiz-saisie select { font: inherit; font-size: 16px; padding: .5rem .7rem; border: 1px solid rgba(0,0,0,.15); border-radius: 8px; min-width: 0; }
+    .quiz-saisie-tete { display: flex; gap: .5rem; margin-bottom: .6rem; flex-wrap: wrap; }
+    .quiz-saisie-tete input { flex: 1 1 260px; }
+    .quiz-saisie-choix { display: flex; align-items: center; gap: .6rem; margin: .35rem 0 0 .2rem; }
+    .quiz-saisie-choix input[type=text] { flex: 1; }
+    .quiz-saisie-choix input[type=radio] { width: 1.15rem; height: 1.15rem; accent-color: #1f8a4c; flex: none; }
+</style>
+
 {{-- ──────────────────────────────────────────────── Qui de nous 2 ── --}}
 <div class="carte" id="qui-deux">
     <h2>Qui de nous 2 ?</h2>

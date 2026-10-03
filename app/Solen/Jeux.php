@@ -20,6 +20,8 @@ use Illuminate\Support\Str;
  * d'office à l'achat. Les mariés n'ont qu'à personnaliser.
  *
  * Un jeu est « prêt » quand il a de quoi être joué :
+ *   - Quiz          : au moins trois questions complètes (trois propositions,
+ *                     une bonne réponse désignée) ;
  *   - Qui de nous 2 : au moins trois questions dont la réponse est désignée ;
  *   - Mots croisés  : une grille d'au moins quatre mots (défaut fourni) ;
  *   - Memory        : toujours (photos du couple, ou pictogrammes) ;
@@ -29,6 +31,12 @@ use Illuminate\Support\Str;
 class Jeux
 {
     public const QUESTIONS_MIN = 3;
+
+    /** Propositions par question du quiz. */
+    public const QUIZ_CHOIX = 3;
+
+    /** Questions du quiz, au plus. */
+    public const QUIZ_MAX = 20;
 
     /** Pictogrammes du memory quand le couple n'a pas assez de photos. */
     private const PICTOS = [
@@ -61,6 +69,7 @@ class Jeux
     public function pret(Event $event, string $cle): bool
     {
         return match ($cle) {
+            'quiz'         => $this->quizPret($event)->count() >= self::QUESTIONS_MIN,
             'qui_deux'     => QuestionQuiDeux::pretes()->count() >= self::QUESTIONS_MIN,
             'mots_croises' => count($this->grille($event)['mots']) >= 4,
             'memory'       => true,
@@ -139,6 +148,43 @@ class Jeux
             GrilleMotsCroises::lire($texte),
             crc32($event->id . '|' . $texte)
         );
+    }
+
+    /**
+     * Les questions du quiz, telles que les mariés les ont saisies, même
+     * incomplètes. Chacune porte sur l'un des deux (« sujet », un prénom),
+     * a trois propositions et l'indice de la bonne.
+     *
+     * Stockées dans les réglages du module : pas de table pour une liste
+     * de dix questions qu'on réécrit d'un bloc.
+     *
+     * @return Collection<int, array{sujet: ?string, question: string, choix: list<string>, bonne: ?int}>
+     */
+    public function quiz(Event $event): Collection
+    {
+        return collect((array) $event->reglage('jeux', 'quiz', []))
+            ->map(fn ($q) => [
+                'sujet'    => $q['sujet'] ?? null,
+                'question' => trim((string) ($q['question'] ?? '')),
+                'choix'    => array_map(fn ($c) => trim((string) $c), array_pad(array_slice((array) ($q['choix'] ?? []), 0, self::QUIZ_CHOIX), self::QUIZ_CHOIX, '')),
+                'bonne'    => isset($q['bonne']) && $q['bonne'] !== '' ? (int) $q['bonne'] : null,
+            ])
+            ->values();
+    }
+
+    /**
+     * Les questions jouables : intitulé, trois propositions, bonne réponse
+     * désignée. Une question à moitié saisie n'est simplement pas posée.
+     *
+     * @return Collection<int, array{sujet: ?string, question: string, choix: list<string>, bonne: int}>
+     */
+    public function quizPret(Event $event): Collection
+    {
+        return $this->quiz($event)
+            ->filter(fn ($q) => $q['question'] !== ''
+                && count(array_filter($q['choix'], fn ($c) => $c !== '')) === self::QUIZ_CHOIX
+                && $q['bonne'] !== null && isset($q['choix'][$q['bonne']]))
+            ->values();
     }
 
     /** @return Collection<int, string> */

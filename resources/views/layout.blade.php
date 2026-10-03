@@ -13,7 +13,8 @@
         ->map(fn ($p) => mb_substr($p, 0, 1))
         ->implode(' & ') ?: mb_substr($event->nom, 0, 2);
 
-    $partage = $event->reglage('site', 'photo_couverture');
+    // Aperçu du lien partagé : l'image prévue pour, sinon la couverture.
+    $partage = $event->reglage('site', 'image_partage') ?: $event->reglage('site', 'photo_couverture');
     $partage = $partage
         ? (Str::startsWith($partage, ['http', '/']) ? $partage : Storage::url($partage))
         : asset('images/preview-mariage.png');
@@ -56,7 +57,16 @@
 
 <a class="visuellement-cache" href="#contenu">Aller au contenu</a>
 
-<header class="entete {{ $surCouverture ? 'entete--sur-photo' : '' }}" id="entete">
+{{-- Décors du thème sur mesure : fleurs et motifs du faire-part, en marge. --}}
+@foreach ($event->theme?->decorsValides() ?? [] as $decor)
+    <img class="decor decor--{{ $decor['emplacement'] }} {{ $decor['miroir'] ? 'decor--miroir' : '' }}"
+         src="{{ Str::startsWith($decor['image'], ['http', '/']) ? $decor['image'] : asset($decor['image']) }}"
+         style="--decor-largeur: {{ $decor['largeur'] }}px; --decor-opacite: {{ $decor['opacite'] }}; --decor-debord: {{ $decor['debord'] }}%"
+         alt="" aria-hidden="true" loading="lazy">
+@endforeach
+
+{{-- Le texte blanc de l'en-tête ne vaut qu'au-dessus d'une photo. --}}
+<header class="entete {{ $surCouverture ? ($event->reglage('site', 'photo_couverture') ? 'entete--sur-photo' : 'entete--sur-fond') : '' }}" id="entete">
     <div class="cadre entete-piste">
         <a class="entete-marque" href="{{ route('home') }}" aria-label="Accueil — {{ $event->nom }}">
             <span class="entete-initiales">{{ $initiales }}</span>
@@ -143,7 +153,7 @@
 
     // Sur la couverture, la barre reprend un fond dès qu'on défile.
     const entete = document.getElementById('entete');
-    if (entete?.classList.contains('entete--sur-photo')) {
+    if (entete?.matches('.entete--sur-photo, .entete--sur-fond')) {
         const suivre = () => entete.classList.toggle('defile', scrollY > 40);
         suivre();
         addEventListener('scroll', suivre, { passive: true });

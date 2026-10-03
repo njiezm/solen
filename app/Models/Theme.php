@@ -65,9 +65,15 @@ class Theme extends Model
         'doux'       => ['nom' => 'Doux',           'filtre' => 'saturate(.82) brightness(1.06) contrast(.94)'],
     ];
 
+    /**
+     * Emplacements des décors, en marge des pages. Le miroir permet de
+     * reprendre la même fleur dans le coin opposé.
+     */
+    public const EMPLACEMENTS_DECOR = ['haut-gauche', 'haut-droite', 'bas-gauche', 'bas-droite'];
+
     protected $fillable = [
         'cle', 'nom', 'ink', 'surface', 'fond', 'accent', 'secondaire',
-        'forme', 'caractere', 'densite', 'traitement',
+        'forme', 'caractere', 'densite', 'traitement', 'decors',
         'font_display', 'font_body', 'actif', 'ordre', 'event_id',
     ];
 
@@ -94,8 +100,9 @@ class Theme extends Model
     protected function casts(): array
     {
         return [
-            'actif' => 'boolean',
-            'ordre' => 'integer',
+            'actif'  => 'boolean',
+            'ordre'  => 'integer',
+            'decors' => 'array',
         ];
     }
 
@@ -253,6 +260,30 @@ class Theme extends Model
 
         // Coefficients de la recommandation UIT-R BT.601.
         return (0.299 * $r + 0.587 * $g + 0.114 * $b) / 255;
+    }
+
+    /**
+     * Les décors valides du thème : une image publique, un emplacement
+     * connu, une largeur raisonnable. Le reste est ignoré sans bruit.
+     *
+     * @return list<array{image: string, emplacement: string, largeur: int, miroir: bool, opacite: float, debord: int}>
+     */
+    public function decorsValides(): array
+    {
+        return collect((array) $this->decors)
+            ->filter(fn ($d) => ! empty($d['image']) && in_array($d['emplacement'] ?? null, self::EMPLACEMENTS_DECOR, true))
+            ->map(fn ($d) => [
+                'image'       => $d['image'],
+                'emplacement' => $d['emplacement'],
+                'largeur'     => max(40, min(480, (int) ($d['largeur'] ?? 180))),
+                'miroir'      => (bool) ($d['miroir'] ?? false),
+                'opacite'     => max(.1, min(1, (float) ($d['opacite'] ?? 1))),
+                // Part de l'image qui sort de l'écran : une fleur coupée
+                // par le bord paraît posée là, pas collée dans un coin.
+                'debord'      => max(0, min(60, (int) ($d['debord'] ?? 0))),
+            ])
+            ->values()
+            ->all();
     }
 
     /** Le nom de l'ornement, utilisé comme classe sur le body. */

@@ -38,6 +38,8 @@ return [
             ['cle' => 'message_accueil', 'type' => 'texte_long', 'label' => 'Message d’accueil',
              'aide' => 'Affiché en haut de la page d’accueil, sous vos prénoms.'],
             ['cle' => 'photo_couverture', 'type' => 'image', 'label' => 'Photo de couverture'],
+            ['cle' => 'image_partage', 'type' => 'image', 'label' => 'Image d’aperçu du lien',
+             'aide' => 'Ce qui s’affiche quand le lien est partagé sur WhatsApp, Messenger ou par SMS. Idéalement 1200 × 630 px. À défaut, la photo de couverture est utilisée.'],
             ['cle' => 'dress_code', 'type' => 'texte', 'label' => 'Code vestimentaire',
              'placeholder' => 'Chic & champêtre, vert sapin et rouille'],
             ['cle' => 'mot_de_passe', 'type' => 'texte', 'label' => 'Code d’accès au site',
@@ -78,7 +80,7 @@ return [
              'options' => ['aucune' => 'Publier immédiatement', 'apres' => 'Valider avant publication'],
              'defaut' => 'aucune'],
             ['cle' => 'taille_max_mo', 'type' => 'nombre', 'label' => 'Poids maximal par photo (Mo)',
-             'defaut' => 5, 'min' => 1, 'max' => 25],
+             'defaut' => 10, 'min' => 1, 'max' => 25],
             ['cle' => 'telechargement', 'type' => 'booleen', 'label' => 'Les invités peuvent télécharger les photos',
              'defaut' => true],
         ],
@@ -86,6 +88,9 @@ return [
         'cagnotte' => [
             ['cle' => 'titre', 'type' => 'texte', 'label' => 'Titre de la cagnotte',
              'defaut' => 'Notre liste de mariage'],
+            ['cle' => 'lien_externe', 'type' => 'lien', 'label' => 'Cagnotte en ligne existante (Leetchi, Lydia…)',
+             'placeholder' => 'https://www.leetchi.com/c/…',
+             'aide' => 'Si vous avez déjà une cagnotte ailleurs, collez son adresse : vos invités y seront envoyés, et le paiement par Solen est masqué.'],
             ['cle' => 'texte_intro', 'type' => 'texte_long', 'label' => 'Message aux invités'],
             ['cle' => 'objectif', 'type' => 'montant', 'label' => 'Objectif',
              'aide' => 'Laissez vide pour ne pas afficher de jauge.'],
@@ -131,7 +136,7 @@ return [
             ['cle' => 'compte_a_rebours', 'type' => 'nombre', 'label' => 'Compte à rebours (secondes)',
              'defaut' => 3, 'min' => 0, 'max' => 10],
             ['cle' => 'cadre', 'type' => 'image', 'label' => 'Cadre personnalisé',
-             'aide' => 'Une image PNG à fond transparent, superposée à la photo.'],
+             'aide' => 'Une image PNG superposée à la photo. Si elle a une zone transparente (un visuel avec vos prénoms et la date), la photo s’y loge et le cadre garde son format.'],
             ['cle' => 'filigrane', 'type' => 'booleen', 'label' => 'Inscrire vos prénoms et la date sur la photo',
              'defaut' => true],
             ['cle' => 'message_apres', 'type' => 'texte', 'label' => 'Message après la photo',
@@ -148,6 +153,7 @@ return [
         'jeux' => [
             ['cle' => 'actifs', 'type' => 'choix_multiple', 'label' => 'Jeux proposés',
              'options' => [
+                 'quiz'         => 'Quiz des mariés',
                  'qui_deux'     => 'Qui de nous 2 ?',
                  'chasse_photo' => 'Chasse photo',
                  'mots_croises' => 'Mots croisés',
@@ -519,6 +525,7 @@ return [
     | coché dans ses réglages.
     */
     'jeux' => [
+        'quiz'         => ['route' => 'jeux.quiz',        'nom' => 'Quiz des mariés', 'icone' => 'fa-circle-question', 'desc' => 'Trois propositions, une seule bonne : qui connaît le mieux les mariés ?'],
         'qui_deux'     => ['route' => 'jeux.quiDeux',     'nom' => 'Qui de nous 2 ?', 'icone' => 'fa-people-arrows',  'desc' => 'Qui de nous deux… ? À vous de deviner.'],
         'mots_croises' => ['route' => 'jeux.motsCroises', 'nom' => 'Mots croisés',    'icone' => 'fa-table-cells',    'desc' => 'Une grille sur le thème du mariage.'],
         'memory'       => ['route' => 'jeux.memory',      'nom' => 'Memory',          'icone' => 'fa-clone',          'desc' => 'Retrouvez les paires, le plus vite possible.'],

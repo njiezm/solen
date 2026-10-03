@@ -28,7 +28,7 @@ class GalerieController extends Controller
         return view('pages.galerie', [
             'photos'         => Photo::publies()->with('participant')->latest()->get(),
             'consigne'       => $event->reglage('mur', 'texte_intro', 'Partagez vos plus belles photos de la journée.'),
-            'poidsMax'       => (int) $event->reglage('mur', 'taille_max_mo', 5),
+            'poidsMax'       => (int) $event->reglage('mur', 'taille_max_mo', 10),
             'telechargement' => (bool) $event->reglage('mur', 'telechargement', true),
             'pleine'         => $event->photosRestantes() === 0,
         ]);
@@ -37,11 +37,12 @@ class GalerieController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $event = $this->courant->get();
-        $poids = (int) $event->reglage('mur', 'taille_max_mo', 5) * 1024;
+        $poids = (int) $event->reglage('mur', 'taille_max_mo', 10) * 1024;
 
         $request->validate([
             'prenom'   => ['required', 'string', 'max:100'],
-            'nom'      => ['required', 'string', 'max:100'],
+            // Le prénom suffit à savoir qui a posté : le nom est facultatif.
+            'nom'      => ['nullable', 'string', 'max:100'],
             'photos'   => ['required', 'array', 'min:1', 'max:20'],
             'photos.*' => ['image', "max:{$poids}"],
         ], [
@@ -57,7 +58,7 @@ class GalerieController extends Controller
         }
 
         $participant = Participant::firstOrCreate([
-            'nom'    => $request->nom,
+            'nom'    => trim((string) $request->input('nom')),
             'prenom' => $request->prenom,
         ]);
 

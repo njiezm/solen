@@ -70,6 +70,67 @@ class JeuxController extends Controller
         ];
     }
 
+    // --- Quiz des mariés ---------------------------------------------------
+
+    public function quiz(): View
+    {
+        if ($attente = $this->attente('quiz')) {
+            return $attente;
+        }
+
+        // Les propositions sont mélangées à l'affichage : la bonne réponse
+        // n'est pas toujours la première saisie par les mariés.
+        $questions = $this->jeux->quizPret($this->event())->map(fn ($q) => $q + [
+            'ordre' => collect(array_keys($q['choix']))->shuffle()->all(),
+        ]);
+
+        return view('jeux.quiz', [
+            'questions' => $questions,
+            'prenoms'   => $this->jeux->prenoms($this->event()),
+            'joueur'    => $this->jeux->joueurConnu(),
+        ]);
+    }
+
+    public function submitQuiz(Request $request): RedirectResponse
+    {
+        abort_unless($this->jeux->ouvert($this->event(), 'quiz'), 404);
+
+        $request->validate($this->regleJoueur() + ['answers' => ['required', 'array']]);
+
+        $participant = $this->jeux->joueur($request->prenom, $request->nom);
+        $questions   = $this->jeux->quizPret($this->event());
+
+        // Le score se lit aussi par marié : « vous connaissez Soizic à 4/5 ».
+        $parSujet = [];
+        $bonnes   = 0;
+
+        foreach ($questions as $i => $question) {
+            $juste = (string) $request->input("answers.{$i}") === (string) $question['bonne'];
+            $bonnes += (int) $juste;
+
+            if ($question['sujet']) {
+                $parSujet[$question['sujet']]['total'] = ($parSujet[$question['sujet']]['total'] ?? 0) + 1;
+                $parSujet[$question['sujet']]['bonnes'] = ($parSujet[$question['sujet']]['bonnes'] ?? 0) + (int) $juste;
+            }
+        }
+
+        $total = $questions->count();
+
+        $this->jeux->enregistrer($participant, 'quiz', (int) round($bonnes / max($total, 1) * 100), [
+            'bonnes' => $bonnes, 'total' => $total, 'par_sujet' => $parSujet,
+        ]);
+
+        $phrase = "{$bonnes} bonne" . ($bonnes > 1 ? 's' : '') . ' réponse' . ($bonnes > 1 ? 's' : '') . " sur {$total}";
+
+        if (count($parSujet) > 1) {
+            $phrase .= ' — ' . collect($parSujet)
+                ->map(fn ($s, $prenom) => "{$prenom} : {$s['bonnes']}/{$s['total']}")
+                ->implode(', ');
+        }
+
+        return $this->resultat('quiz', $phrase);
+    }
+
     // --- Qui de nous 2 ------------------------------------------------------
 
     public function quiDeux(): View

@@ -82,6 +82,12 @@ class NavigationInvite
             ->reject(fn ($nav, $cle) => $cle === 'livret' && ! $event->reglage('livret', 'pdf'))
             ->map(fn ($nav) => $nav + ['params' => []]);
 
+        // La cagnotte porte le nom que le couple lui donne : « Urne »,
+        // « Notre voyage de noces »… plutôt que « Liste de mariage ».
+        if ($entrees->has('cagnotte') && $titre = $this->titreCagnotte($event)) {
+            $entrees->put('cagnotte', ['nom' => $titre] + $entrees->get('cagnotte'));
+        }
+
         // Un moment de la journée par page : mairie, cérémonie, brunch…
         foreach ($event->parts()->actives()->get() as $partie) {
             $entrees->put("moment.{$partie->cle}", [
@@ -111,5 +117,14 @@ class NavigationInvite
         }
 
         return $entrees->sortBy('ordre');
+    }
+
+    /** Le titre de la cagnotte quand le couple l'a changé, sinon null. */
+    public function titreCagnotte(Event $event): ?string
+    {
+        $titre  = trim((string) $event->reglage('cagnotte', 'titre'));
+        $defaut = collect(config('solen_schema.modules.cagnotte'))->firstWhere('cle', 'titre')['defaut'] ?? null;
+
+        return $titre !== '' && $titre !== $defaut ? $titre : null;
     }
 }

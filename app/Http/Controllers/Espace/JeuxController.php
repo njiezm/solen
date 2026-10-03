@@ -52,6 +52,9 @@ class JeuxController extends Controller
         return view('espace.jeux', [
             'catalogue'    => $catalogue,
             'prenoms'      => $this->jeux->prenoms($event),
+            'quiz'         => $this->jeux->quiz($event),
+            'quizPretes'   => $this->jeux->quizPret($event)->count(),
+            'quizMax'      => Jeux::QUIZ_MAX,
             'questions'    => QuestionQuiDeux::withCount('reponses')->orderBy('ordre')->orderBy('id')->get(),
             'texteMots'    => $this->jeux->texteMots($event),
             'grille'       => $this->jeux->grille($event),
@@ -92,6 +95,44 @@ class JeuxController extends Controller
         ]);
 
         return back()->with('ok', 'Le classement a été mis à jour.');
+    }
+
+    // --- Quiz des mariés ---------------------------------------------------
+
+    /**
+     * Le quiz est réécrit d'un bloc : dix questions, trois propositions
+     * chacune, on corrige et on renvoie le tout. Les lignes entièrement
+     * vides sont écartées ; celles à moitié remplies sont gardées, pour
+     * qu'un témoin puisse finir ce qu'un autre a commencé.
+     */
+    public function enregistrerQuiz(Request $request): RedirectResponse
+    {
+        $event   = $this->courant->get();
+        $prenoms = $this->jeux->prenoms($event);
+
+        $donnees = $request->validate([
+            'quiz'              => ['nullable', 'array', 'max:' . Jeux::QUIZ_MAX],
+            'quiz.*.sujet'      => ['nullable', Rule::in($prenoms)],
+            'quiz.*.question'   => ['nullable', 'string', 'max:255'],
+            'quiz.*.choix'      => ['nullable', 'array', 'size:' . Jeux::QUIZ_CHOIX],
+            'quiz.*.choix.*'    => ['nullable', 'string', 'max:150'],
+            'quiz.*.bonne'      => ['nullable', 'integer', 'min:0', 'max:' . (Jeux::QUIZ_CHOIX - 1)],
+        ], [], ['quiz.*.question' => 'question', 'quiz.*.choix.*' => 'proposition']);
+
+        $quiz = collect($donnees['quiz'] ?? [])
+            ->map(fn ($q) => [
+                'sujet'    => $q['sujet'] ?? null,
+                'question' => trim((string) ($q['question'] ?? '')),
+                'choix'    => array_map(fn ($c) => trim((string) $c), array_values($q['choix'] ?? array_fill(0, Jeux::QUIZ_CHOIX, ''))),
+                'bonne'    => isset($q['bonne']) ? (int) $q['bonne'] : null,
+            ])
+            ->reject(fn ($q) => $q['question'] === '' && ! array_filter($q['choix']))
+            ->values()
+            ->all();
+
+        $event->ecrireReglages('jeux', ['quiz' => $quiz]);
+
+        return back()->with('ok', 'Le quiz a été enregistré.')->withFragment('quiz');
     }
 
     // --- Qui de nous 2 ------------------------------------------------------

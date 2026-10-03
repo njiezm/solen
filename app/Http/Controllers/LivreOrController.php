@@ -26,14 +26,15 @@ class LivreOrController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'nom' => 'required|string|max:100',
+            // Le prénom suffit à signer un mot : le nom est facultatif.
+            'nom' => 'nullable|string|max:100',
             'prenom' => 'required|string|max:100',
             'message' => 'required|string|max:' . (int) app(\App\Solen\CurrentEvent::class)->get()->reglage('livredor', 'longueur_max', 1000),
         ]);
 
         // Identification légère
         $participant = Participant::firstOrCreate([
-            'nom' => $request->nom,
+            'nom' => trim((string) $request->input('nom')),
             'prenom' => $request->prenom,
         ]);
 
