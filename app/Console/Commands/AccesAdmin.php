@@ -20,7 +20,8 @@ use Illuminate\Support\Str;
 class AccesAdmin extends Command
 {
     protected $signature = 'solen:admin
-                            {email? : Adresse du compte (défaut : SOLEN_ADMIN_EMAIL)}';
+                            {email? : Adresse du compte (défaut : SOLEN_ADMIN_EMAIL)}
+                            {--choisir : Saisir son propre mot de passe (masqué) au lieu d’en générer un}';
 
     protected $description = 'Crée ou réinitialise le compte super-admin de la console.';
 
@@ -41,9 +42,27 @@ class AccesAdmin extends Command
             return self::FAILURE;
         }
 
-        // Sans symboles : la console Symfony interprète `<...>` comme une
-        // balise de style et mutilerait l'affichage.
-        $motDePasse = Str::password(20, symbols: false);
+        // Saisi masqué plutôt que passé en argument : un mot de passe en
+        // ligne de commande finit dans l'historique du shell.
+        if ($this->option('choisir')) {
+            $motDePasse = (string) $this->secret('Mot de passe (12 caractères au moins)');
+
+            if (mb_strlen($motDePasse) < 12) {
+                $this->error('Trop court : 12 caractères au moins.');
+
+                return self::FAILURE;
+            }
+
+            if ($motDePasse !== $this->secret('Confirmez le mot de passe')) {
+                $this->error('Les deux saisies diffèrent.');
+
+                return self::FAILURE;
+            }
+        } else {
+            // Sans symboles : la console Symfony interprète `<...>` comme
+            // une balise de style et mutilerait l'affichage.
+            $motDePasse = Str::password(20, symbols: false);
+        }
 
         $user ??= new User(['name' => 'Équipe Solen', 'email' => $email]);
         $user->password = Hash::make($motDePasse);
@@ -53,8 +72,10 @@ class AccesAdmin extends Command
         $this->warn('──────────────────────────────────────────────');
         $this->warn("  Console : " . url('/console'));
         $this->warn("  Compte : {$email}");
-        $this->warn("  Mot de passe : {$motDePasse}");
-        $this->warn('  Notez-le maintenant, il ne sera plus affiché.');
+        if (! $this->option('choisir')) {
+            $this->warn("  Mot de passe : {$motDePasse}");
+            $this->warn('  Notez-le maintenant, il ne sera plus affiché.');
+        }
         $this->warn('──────────────────────────────────────────────');
 
         return self::SUCCESS;
