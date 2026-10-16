@@ -10,7 +10,7 @@ use Illuminate\Database\Seeder;
  * Le devis de Soizic & Nylan, aligné sur ce qui a réellement été préparé.
  *
  * Base : la formule Célébration (249 €). En plus : le thème sur mesure.
- * Offert et listé : les développements faits pour eux. En moins : une
+ * Offerts : le quiz des mariés et la configuration du site. En moins : une
  * remise forfaitaire pour les modules de la formule qu'ils n'utilisent pas.
  *
  * Rejouable : le devis du mariage est retrouvé et mis à jour, ou créé en
@@ -29,23 +29,30 @@ class DevisSoizicNylanSeeder extends Seeder
         ['designation' => 'Thème sur mesure',
          'detail'      => 'Couleurs, typographies, fleurs et visuels du faire-part (prénoms, date)',
          'quantite'    => 1, 'prix_unitaire_centimes' => 8900],
-        ['designation' => 'Cadre du photobooth à vos couleurs',
-         'quantite'    => 1, 'prix_unitaire_centimes' => 0],
         ['designation' => 'Quiz des mariés, à trois propositions',
          'quantite'    => 1, 'prix_unitaire_centimes' => 0],
-        ['designation' => 'Urne reliée à votre cagnotte Leetchi',
-         'quantite'    => 1, 'prix_unitaire_centimes' => 0],
-        ['designation' => 'Programme intégré aux infos pratiques',
-         'quantite'    => 1, 'prix_unitaire_centimes' => 0],
-        ['designation' => 'Notre histoire : votre poème en frise, avec vos photos',
+        // Les éléments fournis par le couple (cadre, contenus) ne sont pas
+        // facturés : leur mise en place est regroupée ici.
+        ['designation' => 'Configuration',
          'quantite'    => 1, 'prix_unitaire_centimes' => 0],
     ];
 
+    /**
+     * Le devis n'a qu'une remise : les deux gestes y sont réunis, détaillés
+     * dans le libellé. 50 € de modules non retenus, 10 % de la formule.
+     */
     private const REMISE = [
         'remise_type'    => 'montant',
-        'remise_valeur'  => 50,
-        'remise_libelle' => 'Modules non retenus',
+        'remise_valeur'  => 74.90,
+        'remise_libelle' => 'Modules non retenus (50 €) et 10 % sur la formule (24,90 €)',
     ];
+
+    /** Les délais, calés sur le mariage du samedi 24 octobre 2026. */
+    private const VALIDITE = '2026-10-20';
+
+    private const ACOMPTE_POURCENT = 30;
+
+    private const SOLDE_AVANT = '2026-10-23';
 
     public function run(): void
     {
@@ -71,11 +78,12 @@ class DevisSoizicNylanSeeder extends Seeder
         $contenu = [
             'objet'           => 'Mariage Soizic & Nylan — 24 octobre 2026',
             'lignes'          => self::LIGNES,
-            'valide_jusqu_au' => $devis?->valide_jusqu_au ?? now()->addDays(15)->toDateString(),
+            'valide_jusqu_au' => self::VALIDITE,
         ] + self::REMISE;
 
         if ($devis) {
             $devis->update($contenu);
+            $devis->update(['notes' => $this->conditions($devis)]);
         } else {
             $devis = DocumentCommercial::create($contenu + [
                 'type'       => DocumentCommercial::DEVIS,
@@ -83,8 +91,11 @@ class DevisSoizicNylanSeeder extends Seeder
                 'event_id'   => $event->id,
                 'client_nom' => 'Soizic & Nylan',
             ]);
+            $devis->update(['notes' => $this->conditions($devis)]);
         }
 
+        $this->command?->info('  ' . str_replace("
+", ' ', $devis->notes));
         $this->command?->info(sprintf(
             '%s : %s, remise %s, total %s.',
             $devis->libelle(),
@@ -92,5 +103,17 @@ class DevisSoizicNylanSeeder extends Seeder
             DocumentCommercial::euros($devis->remise_centimes),
             DocumentCommercial::euros($devis->total_centimes),
         ));
+    }
+
+    /** Les conditions de règlement, chiffrées sur le total du devis. */
+    private function conditions(DocumentCommercial $devis): string
+    {
+        $acompte = (int) round($devis->total_centimes * self::ACOMPTE_POURCENT / 100);
+        $solde   = \Illuminate\Support\Carbon::parse(self::SOLDE_AVANT)->translatedFormat('j F Y');
+
+        return 'Règlement : acompte de ' . self::ACOMPTE_POURCENT . ' % à la signature ('
+            . DocumentCommercial::euros($acompte) . '), solde de '
+            . DocumentCommercial::euros($devis->total_centimes - $acompte)
+            . " au plus tard le {$solde}, veille du mariage.";
     }
 }

@@ -246,14 +246,33 @@ class DocumentCommercial extends Model
                 'statut'      => $this->statut === 'paye' ? 'paye' : 'emis',
                 'emis_le'     => $this->emis_le ?? now(),
                 'echeance_le' => $this->type === self::FACTURE
-                    ? ($this->echeance_le ?? now()->addDays(Entreprise::get('delai_paiement_jours', 15)))
+                    ? $this->avantLeMariage($this->echeance_le ?? now()->addDays(Entreprise::get('delai_paiement_jours', 15)))
                     : $this->echeance_le,
-                'valide_jusqu_au' => $this->type === self::DEVIS ? ($this->valide_jusqu_au ?? now()->addDays(30)) : null,
+                'valide_jusqu_au' => $this->type === self::DEVIS ? $this->avantLeMariage($this->valide_jusqu_au ?? now()->addDays(30)) : null,
                 'vendeur'     => Entreprise::tout(),
             ])->saveQuietly();
 
             return $this;
         });
+    }
+
+    /**
+     * Une date de validité ou d'échéance ne dépasse jamais la veille du
+     * mariage : tout doit être réglé avant le jour J. Jamais avant
+     * aujourd'hui non plus, pour un mariage très proche.
+     */
+    private function avantLeMariage($date): \Illuminate\Support\Carbon
+    {
+        $date  = \Illuminate\Support\Carbon::parse($date)->startOfDay();
+        $jourJ = $this->event?->dateLocale();
+
+        if (! $jourJ) {
+            return $date;
+        }
+
+        $veille = \Illuminate\Support\Carbon::parse($jourJ->toDateString())->subDay();
+
+        return $date->min($veille)->max(now()->startOfDay());
     }
 
     /** Annuler une facture : un avoir du même montant, en négatif. */
