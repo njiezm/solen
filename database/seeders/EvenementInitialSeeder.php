@@ -126,7 +126,7 @@ class EvenementInitialSeeder extends Seeder
      */
     private function creerOrganisateur(Event $event): void
     {
-        $email = env('SOLEN_ADMIN_EMAIL', 'contact@solen.app');
+        $email = env('SOLEN_ADMIN_EMAIL', 'contact@njiezm.fr');
 
         $existant = User::where('email', $email)->first();
 

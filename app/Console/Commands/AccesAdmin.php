@@ -27,7 +27,7 @@ class AccesAdmin extends Command
 
     public function handle(): int
     {
-        $email = $this->argument('email') ?: env('SOLEN_ADMIN_EMAIL', 'contact@solen.app');
+        $email = $this->argument('email') ?: env('SOLEN_ADMIN_EMAIL', 'contact@njiezm.fr');
 
         if (! filter_var($email, FILTER_VALIDATE_EMAIL)) {
             $this->error("Adresse invalide : {$email}");
