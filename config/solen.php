@@ -37,7 +37,7 @@ return [
         'siret'          => env('SOLEN_ENTREPRISE_SIRET'),
         'tva'            => env('SOLEN_ENTREPRISE_TVA'),          // numéro intracommunautaire, vide en franchise
         'mention_tva'    => env('SOLEN_ENTREPRISE_MENTION_TVA', 'TVA non applicable, art. 293 B du CGI'),
-        'email'          => env('SOLEN_ENTREPRISE_EMAIL', 'contact@solen.app'),
+        'email'          => env('SOLEN_ENTREPRISE_EMAIL', 'contact@njiezm.fr'),
         'telephone'      => env('SOLEN_ENTREPRISE_TELEPHONE'),
         'site'           => env('SOLEN_ENTREPRISE_SITE', 'https://solen.app'),
         'iban'           => env('SOLEN_ENTREPRISE_IBAN'),
@@ -52,7 +52,8 @@ return [
         'name'     => 'Solen',
         'baseline' => 'Chaque instant du jour J, entre vos mains.',
         'pitch'    => "Les autres vous vendent un site de mariage. Solen fait vivre la journée.",
-        'email'    => 'contact@solen.app',
+        // Adresse affichée sur le site et destinataire des alertes.
+        'email'    => env('SOLEN_EMAIL', 'contact@njiezm.fr'),
     ],
 
     /*

@@ -86,9 +86,17 @@
 <p>Voir la <a href="{{ route('legal.confidentialite') }}">politique de confidentialité</a>.</p>
 
 <h2>11. Médiation et litiges</h2>
+{{-- Le médiateur n'est cité qu'une fois désigné (SOLEN_MEDIATEUR) : une
+     simple adresse de contact n'en tient pas lieu, et l'annoncer comme tel
+     tromperait le client. --}}
 <p>
-    En cas de difficulté, écrivez-nous d’abord : nous répondons sous sept jours ouvrés. À défaut d’accord, vous
-    pouvez recourir gratuitement au médiateur de la consommation : {!! $c('mediateur', 'médiateur de la consommation : nom et site') !!}.
+    En cas de difficulté, écrivez-nous à
+    <a href="mailto:{{ config('solen.entreprise.email') }}">{{ config('solen.entreprise.email') }}</a> :
+    nous répondons sous sept jours ouvrés.
+    @if (config('solen.entreprise.mediateur'))
+        À défaut d’accord, vous pouvez recourir gratuitement au médiateur de la consommation :
+        {{ config('solen.entreprise.mediateur') }}.
+    @endif
     Les présentes CGV sont soumises au droit français.
 </p>
 
