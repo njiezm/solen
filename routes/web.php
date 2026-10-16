@@ -109,6 +109,15 @@ Route::post('/deconnexion', [LoginController::class, 'logout'])
 */
 Route::get('/qr/track/{uuid}', [QrCodeController::class, 'track'])->name('qr.track');
 
+// Signature électronique d'un devis : le lien secret du devis, puis un code
+// envoyé par e-mail. Les envois de code et les essais sont limités.
+Route::prefix('signature/{token}')->name('signature.')->where(['token' => '[A-Za-z0-9]{48}'])->group(function () {
+    Route::get('/', [\App\Http\Controllers\SignatureController::class, 'page'])->name('devis');
+    Route::post('/code', [\App\Http\Controllers\SignatureController::class, 'envoyerCode'])->middleware('throttle:6,10')->name('code');
+    Route::post('/', [\App\Http\Controllers\SignatureController::class, 'signer'])->middleware('throttle:20,10')->name('signer');
+    Route::get('/pdf', [\App\Http\Controllers\SignatureController::class, 'pdf'])->name('pdf');
+});
+
 // Téléchargement d'un document transmis par WhatsApp : lien signé et
 // temporaire, sans connexion. Toute modification du lien l'invalide.
 Route::middleware('signed')->group(function () {
@@ -166,6 +175,7 @@ Route::prefix('console')
             Route::get('/{document}/pdf', [FacturationController::class, 'pdf'])->whereNumber('document')->name('.pdf');
             Route::post('/{document}/envoyer', [FacturationController::class, 'envoyer'])->whereNumber('document')->name('.envoyer');
             Route::get('/{document}/whatsapp', [FacturationController::class, 'whatsapp'])->whereNumber('document')->name('.whatsapp');
+            Route::delete('/{document}/signature', [FacturationController::class, 'revoquerSignature'])->whereNumber('document')->name('.signature.revoquer');
         });
 
         // Documents à transmettre à un mariage : kit, QR, légaux.

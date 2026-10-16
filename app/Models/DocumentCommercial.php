@@ -61,6 +61,7 @@ class DocumentCommercial extends Model
         'nature', 'remise_type', 'remise_valeur', 'remise_libelle', 'code_promo_id',
         'emis_le', 'echeance_le', 'valide_jusqu_au', 'paye_le', 'mode_paiement',
         'envoye_email_le', 'envoye_whatsapp_le',
+        'signature_token', 'signe_le', 'signature', 'signature_code',
     ];
 
     protected function casts(): array
@@ -74,6 +75,9 @@ class DocumentCommercial extends Model
             'paye_le'            => 'datetime',
             'envoye_email_le'    => 'datetime',
             'envoye_whatsapp_le' => 'datetime',
+            'signe_le'           => 'datetime',
+            'signature'          => 'array',
+            'signature_code'     => 'array',
             'total_centimes'     => 'integer',
             'sous_total_centimes' => 'integer',
             'remise_centimes'    => 'integer',
@@ -106,6 +110,13 @@ class DocumentCommercial extends Model
 
             if ($verrouille && array_diff(array_keys($doc->getDirty()), $libres)) {
                 throw new LogicException('Un document émis ne peut plus être modifié : annulez-le par un avoir.');
+            }
+
+            // Un devis signé engage le client sur ce contenu-là : il ne bouge
+            // plus. Seuls son statut et la trace des envois évoluent.
+            $engage = ['lignes', 'remise_type', 'remise_valeur', 'remise_libelle', 'objet', 'client_nom', 'notes', 'valide_jusqu_au'];
+            if ($doc->getOriginal('signe_le') && array_intersect(array_keys($doc->getDirty()), $engage)) {
+                throw new LogicException('Ce devis a été signé : son contenu ne peut plus être modifié.');
             }
         });
 
@@ -250,6 +261,7 @@ class DocumentCommercial extends Model
                     : $this->echeance_le,
                 'valide_jusqu_au' => $this->type === self::DEVIS ? $this->avantLeMariage($this->valide_jusqu_au ?? now()->addDays(30)) : null,
                 'vendeur'     => Entreprise::tout(),
+                'signature_token' => $this->type === self::DEVIS ? ($this->signature_token ?? Str::random(48)) : null,
             ])->saveQuietly();
 
             return $this;
@@ -273,6 +285,58 @@ class DocumentCommercial extends Model
         $veille = \Illuminate\Support\Carbon::parse($jourJ->toDateString())->subDay();
 
         return $date->min($veille)->max(now()->startOfDay());
+    }
+
+    // --- Signature électronique -------------------------------------------
+
+    public function estSigne(): bool
+    {
+        return (bool) $this->signe_le;
+    }
+
+    /** Le lien de signature, créé au besoin. Seul un devis se signe. */
+    public function lienSignature(): ?string
+    {
+        if ($this->type !== self::DEVIS || ! $this->numero) {
+            return null;
+        }
+
+        if (! $this->signature_token) {
+            $this->forceFill(['signature_token' => Str::random(48)])->saveQuietly();
+        }
+
+        return route('signature.devis', $this->signature_token);
+    }
+
+    /** Le lien peut-il encore servir à signer ? */
+    public function signable(): bool
+    {
+        return $this->type === self::DEVIS && $this->numero && ! $this->estSigne()
+            && ! in_array($this->statut, ['refuse', 'converti'], true)
+            && (! $this->valide_jusqu_au || ! $this->valide_jusqu_au->endOfDay()->isPast());
+    }
+
+    /**
+     * Ce qui engage le client, et son empreinte. L'empreinte porte sur les
+     * données, pas sur le PDF, régénéré à chaque export.
+     *
+     * @return array<string, mixed>
+     */
+    public function contenuSigne(): array
+    {
+        $contenu = [
+            'numero' => $this->numero,
+            'objet'  => $this->objet,
+            'client' => $this->client_nom,
+            'lignes' => collect($this->lignes)->map(fn ($l) => [
+                $l['designation'] ?? '', (float) ($l['quantite'] ?? 1), (int) ($l['prix_unitaire_centimes'] ?? 0),
+            ])->values()->all(),
+            'remise' => [$this->remise_type, (float) $this->remise_valeur, $this->remise_libelle],
+            'total'  => $this->total_centimes,
+            'notes'  => $this->notes,
+        ];
+
+        return $contenu + ['empreinte' => hash('sha256', json_encode($contenu, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES))];
     }
 
     /** Annuler une facture : un avoir du même montant, en négatif. */

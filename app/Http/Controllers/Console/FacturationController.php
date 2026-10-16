@@ -116,6 +116,8 @@ class FacturationController extends Controller
         return view('console.facturation.montrer', [
             'doc'       => $document,
             'lien'      => $document->estEmis() ? $this->documents->lienCommercial($document) : null,
+            // Le lien de signature d'un devis émis : créé au besoin.
+            'lienSignature' => $document->estSigne() || ! $document->signable() ? null : $document->lienSignature(),
             'whatsapp'  => $document->estEmis() && $document->client_telephone
                 ? route('console.facturation.whatsapp', $document) : null,
             'manquants' => Entreprise::manquants(),
@@ -260,6 +262,22 @@ class FacturationController extends Controller
         return back()->with('ok', "Envoyé à {$donnees['email']}.");
     }
 
+    /**
+     * Révoque le lien de signature : celui transmis cesse de fonctionner, un
+     * nouveau sera créé à la prochaine ouverture du devis. Une signature
+     * déjà donnée ne se retire pas.
+     */
+    public function revoquerSignature(Doc $document): RedirectResponse
+    {
+        if ($document->estSigne()) {
+            return back()->with('erreur', 'Ce devis est déjà signé : la signature ne se retire pas.');
+        }
+
+        $document->forceFill(['signature_token' => null, 'signature_code' => null])->saveQuietly();
+
+        return back()->with('ok', 'Lien de signature révoqué : l’ancien lien ne fonctionne plus, un nouveau a été créé.');
+    }
+
     /** Ouvre WhatsApp avec le message et le lien de téléchargement, et trace l'envoi. */
     public function whatsapp(Doc $document): RedirectResponse
     {
@@ -270,6 +288,7 @@ class FacturationController extends Controller
         $texte = "Bonjour {$document->client_nom},\n\n"
             . "Voici votre {$document->libelle()} d’un montant de " . Doc::euros($document->total_centimes) . " :\n"
             . $this->documents->lienCommercial($document) . "\n\n"
+            . ($document->signable() ? "Pour le signer en ligne :\n" . $document->lienSignature() . "\n\n" : '')
             . 'Le lien reste valable ' . Documents::VALIDITE_JOURS . " jours.\n" . config('solen.entreprise.nom_commercial');
 
         return redirect()->away($this->documents->whatsapp($document->client_telephone, $texte));

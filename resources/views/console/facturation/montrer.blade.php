@@ -125,6 +125,40 @@
             </div>
         </div>
 
+        {{-- ──────────────────────────────── Signature électronique ── --}}
+        @if ($doc->type === D::DEVIS && $doc->estEmis())
+            <div class="carte" @if ($doc->estSigne()) style="border-color:var(--live)" @endif>
+                <h2>Signature électronique</h2>
+                @if ($doc->estSigne())
+                    @php $sig = $doc->signature ?? []; @endphp
+                    <p class="carte-aide">
+                        <i class="fa-solid fa-circle-check" style="color:var(--live)" aria-hidden="true"></i>
+                        Signé par <strong>{{ $sig['nom'] ?? '—' }}</strong> le {{ $doc->signe_le->translatedFormat('j M Y à H\hi') }},
+                        code vérifié à {{ $sig['email'] ?? '—' }}.<br>
+                        Empreinte du contenu : <code>{{ substr($sig['contenu']['empreinte'] ?? '', 0, 16) }}…</code>
+                    </p>
+                    <a href="{{ route('signature.pdf', $doc->signature_token) }}" class="btn"><i class="fa-solid fa-file-signature" aria-hidden="true"></i> Télécharger le devis signé</a>
+                @elseif ($lienSignature)
+                    <p class="carte-aide">
+                        Le client ouvre ce lien, reçoit un code par e-mail{{ $doc->client_email ? ' à ' . $doc->client_email : '' }}, puis signe au doigt.
+                        Le lien figure aussi sur le PDF du devis.
+                        @unless ($doc->client_email) <br><strong>Astuce :</strong> renseignez l’e-mail du client sur le devis : le code ne partira qu’à cette adresse. @endunless
+                    </p>
+                    <div style="display:grid; gap:.5rem">
+                        <input type="text" value="{{ $lienSignature }}" readonly onclick="this.select()" style="font-size:.85rem">
+                        <button type="button" class="mini" data-copier-texte="{{ $lienSignature }}">Copier le lien de signature</button>
+                        <form method="POST" action="{{ route('console.facturation.signature.revoquer', $doc) }}"
+                              onsubmit="return confirm('Révoquer ce lien ? Celui déjà transmis ne fonctionnera plus.')">
+                            @csrf @method('DELETE')
+                            <button class="mini mini--danger">Révoquer et créer un nouveau lien</button>
+                        </form>
+                    </div>
+                @else
+                    <p class="carte-aide" style="margin:0">Ce devis ne peut plus être signé en ligne (validité dépassée, refusé ou facturé).</p>
+                @endif
+            </div>
+        @endif
+
         {{-- ────────────────────────────────────────────── Envoi ── --}}
         @if ($doc->estEmis())
             <div class="carte">
@@ -138,7 +172,7 @@
                 <form method="POST" action="{{ route('console.facturation.envoyer', $doc) }}" style="display:grid; gap:.5rem">
                     @csrf
                     <input type="email" name="email" value="{{ old('email', $doc->client_email) }}" placeholder="E-mail du client" required>
-                    <textarea name="message" rows="5" required>{{ old('message', "Bonjour {$doc->client_nom},\n\nVous trouverez ci-joint votre " . mb_strtolower($doc->libelle()) . ' d’un montant de ' . D::euros($doc->total_centimes) . ".\n\nMerci de votre confiance,") }}</textarea>
+                    <textarea name="message" rows="6" required>{{ old('message', "Bonjour {$doc->client_nom},\n\nVous trouverez ci-joint votre " . mb_strtolower($doc->libelle()) . ' d’un montant de ' . D::euros($doc->total_centimes) . '.' . ($lienSignature ? "\n\nVous pouvez le signer en ligne ici :\n{$lienSignature}" : '') . "\n\nMerci de votre confiance,") }}</textarea>
                     @if ($doc->event)
                         <label class="champ-bascule"><input type="checkbox" name="joindre_cgv" value="1" checked> Joindre les CGV en PDF</label>
                     @endif

@@ -146,7 +146,23 @@
                 Devis valable jusqu’au <strong>{{ $doc->valide_jusqu_au?->translatedFormat('j F Y') ?? '—' }}</strong>.
                 Bon pour accord : date et signature précédées de « lu et approuvé ».
             </td>
-            <td style="width:50%; height:17mm; border:.3mm dashed #C9C2B4; padding:3mm; vertical-align:top; font-size:7.5pt" class="doux">Signature du client</td>
+            @if ($doc->estSigne())
+                {{-- La preuve de signature, imprimée avec le document. --}}
+                @php $sig = $doc->signature ?? []; @endphp
+                <td style="width:50%; border:.3mm solid #2F7D5D; padding:2.5mm 3mm; vertical-align:top; font-size:7.5pt">
+                    <span style="color:#2F7D5D; letter-spacing:1pt; text-transform:uppercase">Signé électroniquement</span><br>
+                    @if (! empty($sig['trace']))<img src="{{ $sig['trace'] }}" alt="" style="height:13mm; margin:1mm 0"><br>@endif
+                    <strong>{{ $sig['nom'] ?? '' }}</strong> — {{ $doc->signe_le->translatedFormat('j F Y à H\hi') }}<br>
+                    <span class="doux">Code vérifié à {{ $sig['email'] ?? '' }} · empreinte {{ substr($sig['contenu']['empreinte'] ?? '', 0, 16) }}</span>
+                </td>
+            @else
+                <td style="width:50%; height:17mm; border:.3mm dashed #C9C2B4; padding:3mm; vertical-align:top; font-size:7.5pt" class="doux">
+                    Signature du client
+                    @if ($doc->signature_token && $doc->signable())
+                        <br><br>Ou signez en ligne :<br><a href="{{ route('signature.devis', $doc->signature_token) }}" style="font-size:7pt">{{ route('signature.devis', $doc->signature_token) }}</a>
+                    @endif
+                </td>
+            @endif
         </tr></table>
     @endif
 
