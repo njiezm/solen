@@ -1243,3 +1243,31 @@ body:has(.puzzle) input { -webkit-user-select: text; user-select: text; }
 .couverture--photo .visuel-titre, .accueil-tete--photo .visuel-titre { filter: brightness(0) invert(1); }
 .couverture--photo .visuel-date text:not([class*="c-3"]):not([class*="c-2"]) { fill: #FFFFFF; }
 
+/* --- Fenêtre de confirmation ------------------------------------------ */
+
+.modale {
+    width: min(92vw, 420px);
+    padding: 2rem 1.6rem 1.6rem;
+    border: 1px solid var(--c-bord);
+    border-radius: var(--r-carte);
+    background: var(--c-carte);
+    color: var(--c-sur-carte);
+    text-align: center;
+    box-shadow: 0 24px 60px rgb(0 0 0 / .22);
+}
+.modale::backdrop { background: rgb(20 16 14 / .45); backdrop-filter: blur(3px); }
+.modale[open] { animation: modale-entre .22s ease-out; }
+@keyframes modale-entre { from { opacity: 0; transform: translateY(12px) scale(.97); } }
+.modale-icone {
+    display: inline-grid; place-items: center;
+    width: 64px; height: 64px; margin-bottom: 1rem;
+    border-radius: 50%;
+    background: var(--c-accent-pale); color: var(--c-accent-carte);
+    font-size: 1.5rem;
+}
+.modale h2 { margin: 0 0 .6rem; font-family: var(--f-titre); font-size: clamp(1.6rem, 6vw, 2rem); }
+.modale p { margin: 0 0 1.5rem; line-height: 1.55; color: var(--c-sur-carte-doux); }
+.modale-actions { display: grid; gap: .6rem; }
+.modale-actions .bouton { width: 100%; justify-content: center; }
+@media (prefers-reduced-motion: reduce) { .modale[open] { animation: none; } }
+

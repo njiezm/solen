@@ -34,6 +34,20 @@
     </svg>
 </div>
 
+{{-- Confirmation de « Résoudre », aux couleurs du mariage plutôt que la
+     boîte grise du navigateur. --}}
+<dialog class="modale" id="puzzle-confirmation" aria-labelledby="puzzle-confirmation-titre">
+    <span class="modale-icone" aria-hidden="true"><i class="fa-solid fa-wand-magic-sparkles"></i></span>
+    <h2 id="puzzle-confirmation-titre">Résoudre le puzzle ?</h2>
+    <p>Les pièces se mettront en place toutes seules, mais la partie ne rapportera aucun point au classement.</p>
+    <div class="modale-actions">
+        <button type="button" class="bouton bouton--plein" data-modale="continuer" autofocus>
+            <i class="fa-solid fa-puzzle-piece" aria-hidden="true"></i> Je continue
+        </button>
+        <button type="button" class="bouton bouton--contour" data-modale="resoudre">Résoudre quand même</button>
+    </div>
+</dialog>
+
 <form method="POST" action="{{ route('jeux.submitPuzzle') }}" class="bloc" id="puzzle-fin" hidden style="margin-top:1rem">
     @csrf
     <input type="hidden" name="temps" value="1">

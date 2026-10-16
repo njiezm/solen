@@ -149,10 +149,29 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    solveButton?.addEventListener('click', () => {
-        if (!confirm('Résoudre le puzzle ? La partie ne rapportera aucun point.')) return;
+    // Confirmation dans une fenêtre du thème ; sans <dialog>, on repli
+    // sur la boîte du navigateur.
+    const confirmation = document.getElementById('puzzle-confirmation');
+
+    const resoudre = () => {
         solveButton.disabled = true;
         solve();
+    };
+
+    solveButton?.addEventListener('click', () => {
+        if (finished) return;
+        if (!confirmation?.showModal) {
+            if (confirm('Résoudre le puzzle ? La partie ne rapportera aucun point.')) resoudre();
+            return;
+        }
+        confirmation.showModal();
+    });
+
+    confirmation?.addEventListener('click', (e) => {
+        const choix = e.target.closest('[data-modale]')?.dataset.modale;
+        // Un clic sur le voile, hors de la fenêtre, vaut « je continue ».
+        if (choix || e.target === confirmation) confirmation.close();
+        if (choix === 'resoudre') resoudre();
     });
 
     // Cadre de dépôt et image finale, à l'échelle du puzzle.

@@ -122,6 +122,22 @@ Ils se diront le oui le plus tendre et plus doux.",
          'contenu' => 'Un parking sécurisé est prévu sur place.'],
     ];
 
+    /** Les mots croisés : les leurs, puis ceux du mariage. Tous placés sur la grille. */
+    private const MOTS_CROISES = <<<'MOTS'
+        SOIZIC : La mariée
+        NYLAN : Le marié
+        SWANN : Il a ouvert les yeux en juin 2026
+        DIAMANT : Commune du mariage, en Martinique (Le …)
+        ALLIANCE : Elle se porte à l’annulaire
+        BOUQUET : On le lance aux célibataires
+        TEMOIN : Il signe le registre
+        VOEUX : On les échange devant tous
+        GATEAU : On le coupe à deux
+        CHAMPAGNE : On trinque avec
+        DRAGEES : Douceurs offertes aux invités
+        LUNE : Elle est de miel après la noce
+        MOTS;
+
     /** Le contact du jour J. */
     private const CONTACT_JOUR = ['contact_nom' => 'Alvee', 'contact_telephone' => '+596 696 35 29 85'];
 
@@ -408,6 +424,13 @@ Ils se diront le oui le plus tendre et plus doux.",
     private function reglerJeux(Event $event): void
     {
         $event->ecrireReglages('jeux', ['actifs' => self::JEUX]);
+
+        // La grille du couple prime : on ne pose la nôtre que sur une
+        // grille vide, ou déjà la nôtre.
+        $mots = trim((string) $event->reglage('jeux', 'mots'));
+        if ($mots === '' || str_starts_with($mots, 'SOIZIC : La mariée')) {
+            $event->ecrireReglages('jeux', ['mots' => self::MOTS_CROISES]);
+        }
 
         $this->command?->info('  Jeux : ' . implode(', ', self::JEUX) . '.');
     }
