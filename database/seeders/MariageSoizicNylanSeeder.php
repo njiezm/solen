@@ -126,7 +126,7 @@ Ils se diront le oui le plus tendre et plus doux.",
     private const MOTS_CROISES = <<<'MOTS'
         SOIZIC : La mariée
         NYLAN : Le marié
-        SWANN : Il a ouvert les yeux en juin 2026
+        SWANN : Elle a ouvert les yeux en juin 2026
         DIAMANT : Commune du mariage, en Martinique (Le …)
         ALLIANCE : Elle se porte à l’annulaire
         BOUQUET : On le lance aux célibataires
