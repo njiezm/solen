@@ -157,6 +157,16 @@ class Event extends Model
         return max(0, $plafond - Photo::where('event_id', $this->id)->count());
     }
 
+    /**
+     * Le programme vit-il dans les infos pratiques ? Les moments quittent
+     * alors le menu et l'accueil, pour une seule page qui dit tout : où,
+     * quand, comment y aller.
+     */
+    public function programmeDansPratique(): bool
+    {
+        return $this->aModule('pratique') && (bool) $this->reglage('pratique', 'programme', false);
+    }
+
     /** L'équipe Solen s'occupe-t-elle de cette partie ? */
     public function accompagne(string $cle): bool
     {

@@ -89,7 +89,10 @@ class NavigationInvite
         }
 
         // Un moment de la journée par page : mairie, cérémonie, brunch…
-        foreach ($event->parts()->actives()->get() as $partie) {
+        // Sauf si le programme est regroupé dans les infos pratiques.
+        $moments = $event->programmeDansPratique() ? collect() : $event->parts()->actives()->get();
+
+        foreach ($moments as $partie) {
             $entrees->put("moment.{$partie->cle}", [
                 'groupe' => 'jour',
                 'route'  => 'partie',

@@ -24,11 +24,49 @@
     @endif
 </header>
 
-@if ($hebergements->isEmpty() && $transports->isEmpty() && $infos->isEmpty() && $contacts->isEmpty() && ! $dressCode)
+@if ($moments->isEmpty() && $hebergements->isEmpty() && $transports->isEmpty() && $infos->isEmpty() && $contacts->isEmpty() && ! $dressCode)
     <div class="vide">
         <i class="fa-solid fa-map-location-dot" aria-hidden="true"></i>
         Les informations pratiques seront publiées prochainement.
     </div>
+@endif
+
+@if ($moments->isNotEmpty())
+    {{-- Le programme, quand le couple l'a regroupé ici : chaque moment
+         avec son heure, son lieu et de quoi s'y rendre. --}}
+    <section class="bloc">
+        <h2 class="bloc-titre"><span class="pastille"><i class="fa-solid fa-calendar-day" aria-hidden="true"></i></span> Le programme</h2>
+
+        <ol class="programme-pratique">
+            @foreach ($moments as $moment)
+                <li>
+                    <span class="programme-pratique-heure">
+                        {{ $moment->debut_at ? $event->enHeureLocale($moment->debut_at)->format('H\hi') : '—' }}
+                    </span>
+                    <div>
+                        <strong>
+                            <i class="fa-solid {{ $moment->icone ?: 'fa-calendar-day' }}" aria-hidden="true"></i>
+                            {{ $moment->nom }}
+                        </strong>
+                        @if ($moment->accueil_at)
+                            <span class="programme-pratique-detail">Accueil à {{ $event->enHeureLocale($moment->accueil_at)->format('H\hi') }}</span>
+                        @endif
+                        @if ($moment->lieu_nom)
+                            <span class="programme-pratique-detail">{{ $moment->lieu_nom }}</span>
+                        @endif
+                        @if ($moment->lieu_adresse)
+                            <span class="programme-pratique-detail doux">{{ $moment->lieu_adresse }}</span>
+                        @endif
+                        @if ($lien = $moment->lienCarte())
+                            <a href="{{ $lien }}" class="programme-pratique-lien" target="_blank" rel="noopener">
+                                <i class="fa-solid fa-route" aria-hidden="true"></i> Itinéraire
+                            </a>
+                        @endif
+                    </div>
+                </li>
+            @endforeach
+        </ol>
+    </section>
 @endif
 
 @if ($hebergements->isNotEmpty())

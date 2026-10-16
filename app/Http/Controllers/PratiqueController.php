@@ -33,6 +33,10 @@ class PratiqueController extends Controller
 
             'infos'        => $this->champs($blocs, 'info', ['icone', 'titre', 'contenu']),
 
+            'moments'      => $event?->programmeDansPratique()
+                ? $event->parts()->actives()->orderBy('ordre')->get()
+                : collect(),
+
             'dressCode'    => $event?->reglage('site', 'dress_code'),
             'introduction' => $event?->reglage('pratique', 'texte_intro'),
         ]);

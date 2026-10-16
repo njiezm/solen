@@ -1213,3 +1213,22 @@ body:has(.puzzle) input { -webkit-user-select: text; user-select: text; }
     font-family: var(--f-titre); font-size: clamp(1.3rem, 5vw, 1.6rem);
     color: var(--c-sur-carte);
 }
+
+/* --- Programme dans les infos pratiques -------------------------------- */
+
+.programme-pratique { list-style: none; margin: 0; padding: 0; }
+.programme-pratique li {
+    display: grid; grid-template-columns: 4.2rem 1fr; gap: .9rem;
+    padding: 1rem 0; border-top: 1px solid var(--c-bord);
+}
+.programme-pratique li:first-child { border-top: 0; padding-top: .2rem; }
+.programme-pratique-heure { font-weight: 700; font-size: 1.05rem; color: var(--c-accent-carte); font-variant-numeric: tabular-nums; }
+.programme-pratique strong { display: block; font-size: 1.05rem; margin-bottom: .2rem; }
+.programme-pratique strong i { margin-right: .35rem; color: var(--c-accent-carte); font-size: .9em; }
+.programme-pratique-detail { display: block; font-size: .92rem; line-height: 1.5; }
+.programme-pratique-detail.doux { color: var(--c-sur-carte-doux); }
+.programme-pratique-lien {
+    display: inline-flex; align-items: center; gap: .35rem; margin-top: .45rem;
+    font-size: .85rem; font-weight: 600; color: var(--c-accent-carte);
+}
+

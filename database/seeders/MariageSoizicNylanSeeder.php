@@ -102,6 +102,8 @@ class MariageSoizicNylanSeeder extends Seeder
             $this->reglerJeux($event);
             // Photos publiées dès l'envoi : le mur vit pendant la fête.
             $event->ecrireReglages('mur', ['moderation' => 'aucune']);
+            // Le programme est regroupé dans les infos pratiques.
+            $event->ecrireReglages('pratique', ['programme' => true]);
 
             // Le reste n'est qu'un point de départ : une fois le couple
             // dans son espace, ses choix priment.

@@ -86,7 +86,8 @@
     </a>
 @endif
 
-@if ($moments->isNotEmpty())
+{{-- Regroupé dans les infos pratiques, le programme n'est pas répété ici. --}}
+@if ($moments->isNotEmpty() && ! $event->programmeDansPratique())
     <section class="section">
         <div class="section-tete">
             <h2>Le programme</h2>

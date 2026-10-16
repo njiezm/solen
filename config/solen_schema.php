@@ -208,6 +208,8 @@ return [
 
         'pratique' => [
             ['cle' => 'texte_intro', 'type' => 'texte_long', 'label' => 'Introduction'],
+            ['cle' => 'programme', 'type' => 'booleen', 'label' => 'Présenter le programme ici',
+             'aide' => 'Les moments de la journée (heures, lieux, itinéraires) s’affichent en tête des infos pratiques, au lieu d’avoir chacun leur page dans le menu.'],
             ['cle' => 'contact_nom', 'type' => 'texte', 'label' => 'Personne à contacter le jour J'],
             ['cle' => 'contact_telephone', 'type' => 'telephone', 'label' => 'Son téléphone'],
             ['cle' => 'contact_email', 'type' => 'email', 'label' => 'Son e-mail'],
