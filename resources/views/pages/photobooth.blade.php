@@ -10,10 +10,26 @@
 
 <style>
     .booth { max-width: 620px; margin-inline: auto; }
+    /*
+     * La scène tient dans l'écran avec le bouton de déclenchement : sa
+     * largeur se déduit de la hauteur disponible et du format (celui du
+     * cadre, posé par le script). Sans cela, un cadre en portrait poussait
+     * le bouton sous la ligne de flottaison sur téléphone.
+     */
     .booth-scene {
+        --booth-ratio: .75;
+        --booth-reserve: 15rem;
         position: relative; border-radius: 18px; overflow: hidden;
-        background: #111; aspect-ratio: 3 / 4;
+        background: #111; aspect-ratio: var(--booth-ratio);
+        width: min(100%, calc((100svh - var(--booth-reserve)) * var(--booth-ratio)));
+        margin-inline: auto;
         display: grid; place-items: center;
+    }
+    @media (max-width: 767px) {
+        /* En-tête, barre basse, titre et bouton. */
+        .booth-scene { --booth-reserve: calc(var(--h-entete) + var(--h-barre) + 10.5rem); }
+        .booth .ceremony-heading { font-size: 1.6rem; margin-bottom: .2rem; }
+        .booth .booth-consigne { margin-bottom: .8rem !important; font-size: .95rem; }
     }
     .booth-scene video, .booth-scene canvas, .booth-scene img {
         width: 100%; height: 100%; object-fit: cover; display: block;
@@ -82,7 +98,7 @@
         <i class="fa-solid fa-camera-retro me-2"></i> Photobooth
     </h2>
 
-    <p class="text-center mb-4">{{ $consigne }}</p>
+    <p class="text-center mb-4 booth-consigne">{{ $consigne }}</p>
 
     <div class="booth-scene">
         <video id="flux" autoplay playsinline muted></video>
@@ -94,6 +110,17 @@
         <div class="booth-rebours" id="rebours" hidden></div>
         <div class="booth-flash" id="flash"></div>
         <div class="booth-etat" id="etat" hidden></div>
+    </div>
+
+    {{-- Le déclencheur juste sous la photo : on le voit sans défiler. --}}
+    <div class="booth-actions">
+        <button class="btn btn-pro-primary" id="declencher">
+            <i class="fa-solid fa-camera me-2"></i> Prendre la photo
+        </button>
+        <button class="btn btn-outline-secondary" id="recommencer" hidden>Recommencer</button>
+        <button class="btn btn-pro-primary" id="valider" hidden>
+            <i class="fa-solid fa-check me-2"></i> Envoyer aux mariés
+        </button>
     </div>
 
     <div class="booth-identite">
@@ -109,16 +136,6 @@
                maxlength="255" autocomplete="email" inputmode="email">
     </div>
     <p class="booth-mention">Votre adresse ne sert qu’à vous envoyer ce cliché.</p>
-
-    <div class="booth-actions">
-        <button class="btn btn-pro-primary" id="declencher">
-            <i class="fa-solid fa-camera me-2"></i> Prendre la photo
-        </button>
-        <button class="btn btn-outline-secondary" id="recommencer" hidden>Recommencer</button>
-        <button class="btn btn-pro-primary" id="valider" hidden>
-            <i class="fa-solid fa-check me-2"></i> Envoyer aux mariés
-        </button>
-    </div>
 
     <p class="booth-message" id="message"></p>
 
@@ -238,7 +255,7 @@
         fenetre = { x: x0 / l, y: y0 / h, l: (x1 - x0 + 1) / l, h: (y1 - y0 + 1) / h };
 
         scene.classList.add('avec-fenetre');
-        scene.style.aspectRatio = `${cadreImg.naturalWidth} / ${cadreImg.naturalHeight}`;
+        scene.style.setProperty('--booth-ratio', cadreImg.naturalWidth / cadreImg.naturalHeight);
         Object.assign(flux.style, {
             left:   `${fenetre.x * 100}%`, top:    `${fenetre.y * 100}%`,
             width:  `${fenetre.l * 100}%`, height: `${fenetre.h * 100}%`,
