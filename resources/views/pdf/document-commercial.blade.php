@@ -12,6 +12,30 @@
     <meta charset="UTF-8">
     <title>{{ $doc->libelle() }}</title>
     @include('pdf.partials.papier')
+    {{-- Un devis ou une facture tient sur une page : on resserre ce que le
+         papier commun aère pour les documents longs. --}}
+    <style>
+        @page { margin: 12mm 14mm 18mm; }
+        body { font-size: 9pt; line-height: 1.35; }
+        table.entete { margin-bottom: 5mm; }
+        .marque { font-size: 16pt; }
+        .marque img { width: 10mm; height: 10mm; }
+        .type-doc { font-size: 18pt; }
+        .filet-or { margin-bottom: 5mm; }
+        table.parties { margin-bottom: 5mm; }
+        .encart { padding: 2.5mm 4mm; }
+        .encart-titre { margin-bottom: 1mm; }
+        .encart strong { font-size: 10pt; }
+        table.lignes { margin-bottom: 4mm; }
+        table.lignes th { padding: 2mm 2.5mm; }
+        table.lignes td { padding: 1.4mm 2.5mm; }
+        table.lignes .detail { font-size: 7.5pt; margin-top: .5mm; }
+        table.totaux { width: 66%; margin-left: 34%; }
+        table.totaux td { padding: 1.2mm 2.5mm; }
+        .mentions { margin-top: 3mm; }
+        .offert { color: #2F7D5D; }
+        .pied { bottom: -11mm; }
+    </style>
 </head>
 <body>
 
@@ -22,10 +46,10 @@
         <td style="padding-right:3mm">
             <div class="encart">
                 <div class="encart-titre">Émis par</div>
+                {{-- Adresse et SIRET figurent déjà dans le pied de page, sur
+                     chaque feuille : l'encart reste court. --}}
                 <strong>{{ $v['nom_commercial'] ?? '' }}</strong><br>
-                {{ $v['dirigeant'] ?? '' }} — {{ $v['raison_sociale'] ?? '' }} (EI)<br>
-                {!! nl2br(e($v['adresse'] ?? '')) !!}<br>
-                @if (! empty($v['siret']))SIRET {{ $v['siret'] }}<br>@endif
+                {{ $v['dirigeant'] ?? '' }} — {{ $v['raison_sociale'] ?? '' }} (EI)@if (! empty($v['siret'])) · SIRET {{ $v['siret'] }}@endif<br>
                 {{ $v['email'] ?? '' }}@if (! empty($v['telephone'])) · {{ $v['telephone'] }}@endif
             </div>
         </td>
@@ -42,10 +66,11 @@
 </table>
 
 @if ($doc->objet)
-    <p class="serif" style="font-size:12pt; color:#1B1B2F; margin-bottom:4mm">{{ $doc->objet }}</p>
+    <p class="serif" style="font-size:11pt; color:#1B1B2F; margin-bottom:2mm">{{ $doc->objet }}</p>
 @endif
-@if ($doc->event)
-    <p class="doux" style="margin-bottom:4mm">Mariage : {{ $doc->event->nom }}@if ($doc->event->dateLocale()) — {{ $doc->event->dateLocale()->translatedFormat('j F Y') }}@endif</p>
+{{-- Le mariage, sauf si l'objet le nomme déjà. --}}
+@if ($doc->event && ! str_contains((string) $doc->objet, $doc->event->nom))
+    <p class="doux" style="margin-bottom:3mm">Mariage : {{ $doc->event->nom }}@if ($doc->event->dateLocale()) — {{ $doc->event->dateLocale()->translatedFormat('j F Y') }}@endif</p>
 @endif
 
 <table class="lignes">
@@ -66,8 +91,14 @@
                     @if (! empty($ligne['detail']))<span class="detail">{{ $ligne['detail'] }}</span>@endif
                 </td>
                 <td class="num">{{ rtrim(rtrim(number_format((float) ($ligne['quantite'] ?? 1), 2, ',', ''), '0'), ',') }}</td>
-                <td class="num">{{ $euros($ligne['prix_unitaire_centimes']) }}</td>
-                <td class="num" @if (! empty($ligne['deduction'])) style="color:#2F7D5D" @endif>{{ $euros($montant) }}</td>
+                {{-- Une prestation à 0 € est un geste : elle se lit « Offert ». --}}
+                @if ((int) $ligne['prix_unitaire_centimes'] === 0)
+                    <td class="num offert">Offert</td>
+                    <td class="num offert">Offert</td>
+                @else
+                    <td class="num">{{ $euros($ligne['prix_unitaire_centimes']) }}</td>
+                    <td class="num" @if (! empty($ligne['deduction'])) style="color:#2F7D5D" @endif>{{ $euros($montant) }}</td>
+                @endif
             </tr>
         @endforeach
     </tbody>
@@ -109,10 +140,13 @@
     @endif
 
     @if ($doc->type === D::DEVIS)
-        <p>Devis valable jusqu’au <strong>{{ $doc->valide_jusqu_au?->translatedFormat('j F Y') ?? '—' }}</strong>. Bon pour accord : date et signature précédées de « lu et approuvé ».</p>
-        <table style="width:100%; margin-top:6mm"><tr>
-            <td style="width:50%"></td>
-            <td style="width:50%; height:28mm; border:.3mm dashed #C9C2B4; padding:3mm; vertical-align:top; font-size:7.5pt" class="doux">Signature du client</td>
+        {{-- Validité et signature côte à côte : une page, pas deux. --}}
+        <table style="width:100%; margin-top:2mm"><tr>
+            <td style="width:50%; vertical-align:top; padding-right:4mm">
+                Devis valable jusqu’au <strong>{{ $doc->valide_jusqu_au?->translatedFormat('j F Y') ?? '—' }}</strong>.
+                Bon pour accord : date et signature précédées de « lu et approuvé ».
+            </td>
+            <td style="width:50%; height:17mm; border:.3mm dashed #C9C2B4; padding:3mm; vertical-align:top; font-size:7.5pt" class="doux">Signature du client</td>
         </tr></table>
     @endif
 
