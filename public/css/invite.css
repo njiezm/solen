@@ -1192,3 +1192,24 @@ body:has(.puzzle) input { -webkit-user-select: text; user-select: text; }
 .acces-formulaire { display: flex; gap: .5rem; max-width: 380px; margin: 1.8rem auto 0; }
 .acces-formulaire .saisie { flex: 1; text-align: center; letter-spacing: .08em; }
 .acces-erreur { margin: .9rem auto 0; max-width: 380px; padding: .6rem .9rem; border-radius: 10px; background: #FDECEC; color: #8A1C1C; font-weight: 600; }
+
+/* --- Urne tenue ailleurs (Leetchi…) ----------------------------------- */
+
+.urne-externe { text-align: center; padding: clamp(1.8rem, 6vw, 2.6rem) clamp(1.2rem, 5vw, 2.4rem); }
+.urne-externe-icone {
+    display: inline-grid; place-items: center;
+    width: 76px; height: 76px; margin-bottom: 1.2rem;
+    border-radius: 50%;
+    background: var(--c-accent-pale); color: var(--c-accent-carte);
+    font-size: 1.9rem;
+}
+.urne-externe-mot { max-width: 30rem; margin: 0 auto 1.6rem; font-size: 1.05rem; line-height: 1.65; }
+.urne-externe-bouton { font-size: 1.05rem; padding-inline: 1.8rem; }
+.urne-externe-note { margin: .9rem 0 0; font-size: .8rem; color: var(--c-sur-carte-doux); }
+.urne-externe-note i { margin-right: .3rem; }
+.urne-externe-signature {
+    margin: 1.8rem 0 0; padding-top: 1.2rem;
+    border-top: 1px solid var(--c-bord);
+    font-family: var(--f-titre); font-size: clamp(1.3rem, 5vw, 1.6rem);
+    color: var(--c-sur-carte);
+}

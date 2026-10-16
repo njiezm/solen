@@ -360,6 +360,7 @@ Route::prefix('mariage/{event}/espace')
 
         // Cagnotte : raccordement du compte bancaire des mariés.
         Route::get('/paiements',           [PaiementController::class, 'index'])->name('paiements');
+        Route::post('/paiements/lien',     [PaiementController::class, 'enregistrerLien'])->name('paiements.lien');
         Route::get('/paiements/inscrire',  [PaiementController::class, 'inscrire'])->name('paiements.inscrire');
         Route::get('/paiements/stripe',    [PaiementController::class, 'tableauDeBord'])->name('paiements.stripe');
 

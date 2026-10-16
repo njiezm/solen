@@ -7,11 +7,14 @@ use App\Models\UrneDon;
 use App\Solen\CurrentEvent;
 use App\Solen\StripeConnect;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Stripe\Exception\ApiErrorException;
 
 /**
- * Raccordement de la cagnotte au compte bancaire des mariés.
+ * La cagnotte des mariés : soit raccordée à leur compte bancaire par
+ * Stripe, soit tenue ailleurs (Leetchi, Lydia…), auquel cas le site se
+ * contente d'y envoyer les invités.
  */
 class PaiementController extends Controller
 {
@@ -30,12 +33,40 @@ class PaiementController extends Controller
         }
 
         return view('espace.paiements', [
+            'lienExterne' => $event->reglage('cagnotte', 'lien_externe'),
+            'titre'       => $event->reglage('cagnotte', 'titre'),
+            'intro'       => $event->reglage('cagnotte', 'texte_intro'),
             'configure'  => $this->stripe->configure(),
             'pret'       => $this->stripe->pretAEncaisser($event),
             'dons'       => UrneDon::with('participant')->latest()->limit(20)->get(),
             'total'      => UrneDon::where('statut', 'payé')->sum('montant'),
             'enAttente'  => UrneDon::where('statut', 'en_attente')->count(),
         ]);
+    }
+
+    /**
+     * Le lien d'une cagnotte tenue ailleurs. Vide : retour à l'encaissement
+     * par Solen.
+     */
+    public function enregistrerLien(Request $request, CurrentEvent $courant): RedirectResponse
+    {
+        $donnees = $request->validate([
+            'lien_externe' => ['nullable', 'url:https', 'max:500'],
+            'titre'        => ['nullable', 'string', 'max:80'],
+            'texte_intro'  => ['nullable', 'string', 'max:1500'],
+        ], [
+            'lien_externe.url' => 'Collez l’adresse complète de la cagnotte, qui commence par https://',
+        ], ['lien_externe' => 'lien de la cagnotte']);
+
+        $courant->get()->ecrireReglages('cagnotte', [
+            'lien_externe' => $donnees['lien_externe'] ?? null,
+            'titre'        => $donnees['titre'] ?? null,
+            'texte_intro'  => $donnees['texte_intro'] ?? null,
+        ]);
+
+        return back()->with('ok', ($donnees['lien_externe'] ?? null)
+            ? 'Votre cagnotte en ligne est reliée : vos invités y seront envoyés.'
+            : 'Lien retiré : la cagnotte repasse par Solen.');
     }
 
     /** Ouvre le parcours d'inscription Stripe, ou le reprend là où il s'est arrêté. */

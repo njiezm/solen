@@ -48,8 +48,29 @@ class UrneController extends Controller
             'ouvert'       => $this->stripe->pretAEncaisser($event),
             // Une cagnotte déjà ouverte ailleurs (Leetchi, Lydia…) prend le
             // pas sur l'encaissement par Solen : on y envoie les invités.
-            'lienExterne'  => $event->reglage('cagnotte', 'lien_externe'),
+            'lienExterne'  => $lien = $event->reglage('cagnotte', 'lien_externe'),
+            'plateforme'   => $this->plateforme($lien),
         ]);
+    }
+
+    /**
+     * Le nom de la plateforme d'une cagnotte externe, pour un bouton qui
+     * dit où l'on va : « Participer sur Leetchi ». Null si inconnue.
+     */
+    private function plateforme(?string $lien): ?string
+    {
+        $hote = strtolower((string) parse_url((string) $lien, PHP_URL_HOST));
+
+        foreach ([
+            'leetchi'   => 'Leetchi',  'lydia'      => 'Lydia', 'paypal' => 'PayPal',
+            'lepotcommun' => 'Le Pot Commun', 'helloasso' => 'HelloAsso', 'kisskiss' => 'KissKissBankBank',
+        ] as $motif => $nom) {
+            if (str_contains($hote, $motif)) {
+                return $nom;
+            }
+        }
+
+        return null;
     }
 
     public function payer(Request $request, CurrentEvent $courant): RedirectResponse

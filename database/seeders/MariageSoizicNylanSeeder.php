@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Event;
+use App\Models\EventPart;
 use App\Models\Theme;
 use App\Solen\CreationMariage;
 use App\Solen\CurrentEvent;
@@ -20,9 +21,9 @@ use Illuminate\Support\Facades\Storage;
  * compléteront depuis leur espace.
  *
  * Rejouable : `php artisan db:seed --class=MariageSoizicNylanSeeder`. Le
- * thème et le cadre sont remis à jour à chaque passage ; les modules et
- * réglages de départ ne sont posés qu'à la création, pour ne jamais
- * écraser ce que le couple a choisi depuis son espace.
+ * thème, le cadre, les modules et les jeux, arrêtés avec le couple, sont
+ * remis à jour à chaque passage ; les autres réglages de départ ne sont
+ * posés qu'à la création, pour ne pas écraser ce qu'il a saisi.
  */
 class MariageSoizicNylanSeeder extends Seeder
 {
@@ -30,15 +31,25 @@ class MariageSoizicNylanSeeder extends Seeder
 
     private const DOSSIER = 'images/mariagenylan';
 
-    /** Leur liste, plus le compte à rebours et les QR codes. */
+    /** Le Diamant, en Martinique. */
+    private const FUSEAU = 'America/Martinique';
+
+    /**
+     * La liste finale arrêtée avec le couple. Le site invité (« site ») est
+     * le socle, il reste toujours allumé.
+     */
     private const MODULES = [
-        'site', 'compte', 'qr',
-        'histoire', 'pratique', 'menu', 'hommage',
-        'livret', 'photobooth', 'mur', 'cagnotte', 'jeux',
+        'site', 'compte', 'histoire', 'pratique', 'photobooth', 'mur', 'cagnotte', 'jeux',
     ];
 
+    /**
+     * Les moments affichés au programme. Mairie et soirée restent en base,
+     * éteints : les rallumer suffit si le couple change d'avis.
+     */
+    private const MOMENTS = ['ceremonie', 'vin-honneur', 'diner'];
+
     /** Le « Qui de nous 2 » se fera en animation, pas sur le site. */
-    private const JEUX = ['quiz', 'puzzle', 'mots_croises', 'memory'];
+    private const JEUX = ['quiz', 'puzzle', 'mots_croises'];
 
     /**
      * Le thème, relevé sur le visuel du photobooth : gris perle et blanc
@@ -61,8 +72,10 @@ class MariageSoizicNylanSeeder extends Seeder
     ];
 
     private const DECORS = [
-        ['image' => self::DOSSIER . '/deco-lys.png',         'emplacement' => 'haut-gauche', 'largeur' => 230, 'opacite' => .55],
-        ['image' => self::DOSSIER . '/deco-lys.png',         'emplacement' => 'bas-droite',  'largeur' => 230, 'opacite' => .55, 'miroir' => true],
+        // Les trois fleurs du visuel, redessinées en entier : le lys étoilé,
+        // la gerbe de pétales effilés et la marguerite.
+        ['image' => self::DOSSIER . '/deco-lys.svg',         'emplacement' => 'haut-gauche', 'largeur' => 240, 'opacite' => .55, 'debord' => 18],
+        ['image' => self::DOSSIER . '/deco-gerbe.svg',       'emplacement' => 'bas-droite',  'largeur' => 300, 'opacite' => .55, 'debord' => 8],
         ['image' => self::DOSSIER . '/deco-marguerite.svg',  'emplacement' => 'haut-droite', 'largeur' => 130, 'debord' => 28],
         ['image' => self::DOSSIER . '/deco-marguerite.svg',  'emplacement' => 'bas-gauche',  'largeur' => 90,  'debord' => 30],
     ];
@@ -78,23 +91,57 @@ class MariageSoizicNylanSeeder extends Seeder
             self::THEME + ['decors' => self::DECORS, 'event_id' => $event->id, 'actif' => true, 'ordre' => 0]
         );
 
-        $event->update(['theme_id' => $theme->id]);
+        $event->update(['theme_id' => $theme->id, 'lieu_ville' => 'Le Diamant', 'lieu_pays' => 'Martinique']);
+        $this->passerAuFuseau($event);
 
         app(CurrentEvent::class)->pretend($event, function () use ($event, $nouveau) {
-            // Le cadre est notre travail : toujours remis à jour.
+            // Le cadre, les modules et les jeux sont arrêtés avec le couple :
+            // toujours réappliqués.
             $this->poserCadre($event);
+            $this->choisirModules($event);
+            $this->choisirMoments();
+            $this->reglerJeux($event);
+            // Photos publiées dès l'envoi : le mur vit pendant la fête.
+            $event->ecrireReglages('mur', ['moderation' => 'aucune']);
 
             // Le reste n'est qu'un point de départ : une fois le couple
             // dans son espace, ses choix priment.
             if ($nouveau) {
-                $this->choisirModules($event);
                 $this->reglerPhotobooth($event);
-                $this->reglerJeux($event);
                 $this->reglerCagnotte($event);
             }
         });
 
         $this->command?->info("Mariage « {$event->nom} » prêt : {$event->url()}");
+    }
+
+    /**
+     * Le mariage a d'abord été créé à l'heure de Paris. Les horaires sont
+     * stockés en UTC : changer le fuseau seul décalerait tout de six heures.
+     * On garde donc l'heure affichée (15 h reste 15 h, mais au Diamant).
+     */
+    private function passerAuFuseau(Event $event): void
+    {
+        $ancien = $event->timezone;
+
+        if ($ancien === self::FUSEAU) {
+            return;
+        }
+
+        app(CurrentEvent::class)->pretend($event, function () use ($ancien) {
+            foreach (EventPart::all() as $partie) {
+                foreach (['accueil_at', 'debut_at', 'fin_at'] as $champ) {
+                    if ($partie->{$champ}) {
+                        $local = $partie->{$champ}->copy()->setTimezone($ancien)->format('Y-m-d H:i:s');
+                        $partie->{$champ} = \Illuminate\Support\Carbon::parse($local, self::FUSEAU)->utc();
+                    }
+                }
+                $partie->save();
+            }
+        });
+
+        $event->update(['timezone' => self::FUSEAU]);
+        $this->command?->info("  Fuseau : {$ancien} → " . self::FUSEAU . ', horaires conservés.');
     }
 
     /** Création initiale, par le même chemin que l'assistant de la console. */
@@ -106,8 +153,9 @@ class MariageSoizicNylanSeeder extends Seeder
             'partenaire_1'    => 'Soizic',
             'partenaire_2'    => 'Nylan',
             'date_principale' => '2026-10-24',
-            // À confirmer avec le couple : le lieu n'est pas encore connu.
-            'timezone'        => 'Europe/Paris',
+            'timezone'        => self::FUSEAU,
+            'lieu_ville'      => 'Le Diamant',
+            'lieu_pays'       => 'Martinique',
             'plan'            => 'celebration',
             'parties'         => ['mairie', 'ceremonie', 'vin-honneur', 'diner', 'soiree'],
             'type_ceremonie'  => 'catholique',
@@ -174,6 +222,15 @@ class MariageSoizicNylanSeeder extends Seeder
             'filigrane' => false,
             'consigne'  => 'Souriez, c’est pour Soizic & Nylan !',
         ]);
+    }
+
+    private function choisirMoments(): void
+    {
+        foreach (EventPart::all() as $partie) {
+            $partie->update(['actif' => in_array($partie->cle, self::MOMENTS, true)]);
+        }
+
+        $this->command?->info('  Programme : ' . implode(', ', self::MOMENTS) . '.');
     }
 
     private function reglerJeux(Event $event): void

@@ -9,7 +9,8 @@
         <p class="page-tete-sur">Liste de mariage</p>
     @endunless
     <h1>{{ $titre }}</h1>
-    @if ($introduction)
+    {{-- Avec une cagnotte externe, le mot des mariés passe dans la carte. --}}
+    @if ($introduction && ! $lienExterne)
         <p>{!! nl2br(e($introduction)) !!}</p>
     @endif
 </header>
@@ -35,11 +36,26 @@
 @endif
 
 @if ($lienExterne)
-    <section class="bloc" style="text-align:center">
-        <p>Notre cagnotte est en ligne : un clic, et vous y êtes.</p>
-        <a href="{{ $lienExterne }}" class="bouton bouton--plein" target="_blank" rel="noopener">
-            <i class="fa-solid fa-gift" aria-hidden="true"></i> Participer à la cagnotte
+    <section class="bloc urne-externe">
+        <span class="urne-externe-icone" aria-hidden="true"><i class="fa-solid fa-envelope-open-text"></i></span>
+
+        <p class="urne-externe-mot">
+            {!! nl2br(e($introduction ?: 'Votre présence est notre plus beau cadeau. Pour celles et ceux qui le souhaitent, une urne est à votre disposition.')) !!}
+        </p>
+
+        <a href="{{ $lienExterne }}" class="bouton bouton--plein urne-externe-bouton" target="_blank" rel="noopener">
+            <i class="fa-solid fa-gift" aria-hidden="true"></i>
+            {{ $plateforme ? 'Participer sur ' . $plateforme : 'Participer à l’urne' }}
         </a>
+
+        <p class="urne-externe-note">
+            <i class="fa-solid fa-lock" aria-hidden="true"></i>
+            Vous serez redirigé vers {{ $plateforme ?? 'la cagnotte en ligne' }}, dans un nouvel onglet.
+        </p>
+
+        @if ($event->partenaire_1 && $event->partenaire_2)
+            <p class="urne-externe-signature">Merci du fond du cœur, {{ $event->partenaire_1 }} &amp; {{ $event->partenaire_2 }}</p>
+        @endif
     </section>
 @elseif (! $ouvert)
     <div class="vide">

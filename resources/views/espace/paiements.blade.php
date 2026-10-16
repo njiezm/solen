@@ -3,10 +3,52 @@
 @section('titre', 'Cagnotte')
 @section('retour', route('espace.index'))
 @section('retour-libelle', 'Tableau de bord')
-@section('chapeau', 'L’argent de votre cagnotte arrive directement sur votre compte bancaire, jamais sur celui de Solen.')
+@section('chapeau', 'L’argent de votre cagnotte arrive directement chez vous : sur votre compte bancaire, ou sur la cagnotte en ligne que vous avez déjà ouverte.')
 
 @section('contenu')
 
+{{-- ─────────────────────── Cagnotte tenue ailleurs (Leetchi, Lydia…) ── --}}
+<div class="carte" id="cagnotte-en-ligne" @if ($lienExterne) style="border-color:var(--live)" @endif>
+    <h2>
+        @if ($lienExterne)
+            <i class="fa-solid fa-circle-check" style="color:var(--live)" aria-hidden="true"></i> Votre cagnotte en ligne est reliée
+        @else
+            Vous avez déjà une cagnotte en ligne ?
+        @endif
+    </h2>
+    <p class="carte-aide">
+        Leetchi, Lydia, Paypal… Collez son adresse : vos invités y seront envoyés d’un bouton,
+        et le paiement par Solen est masqué. Les participations se suivent alors sur ce site-là.
+    </p>
+
+    <form method="POST" action="{{ route('espace.paiements.lien') }}">
+        @csrf
+        <div class="champ">
+            <label for="lien_externe">Adresse de la cagnotte</label>
+            <input type="url" id="lien_externe" name="lien_externe" inputmode="url"
+                   value="{{ old('lien_externe', $lienExterne) }}" placeholder="https://www.leetchi.com/c/…">
+            @error('lien_externe') <p class="champ-erreur">{{ $message }}</p> @enderror
+        </div>
+        <div class="champ">
+            <label for="titre">Nom affiché aux invités</label>
+            <input type="text" id="titre" name="titre" maxlength="80"
+                   value="{{ old('titre', $titre) }}" placeholder="Urne, Notre voyage de noces…">
+        </div>
+        <div class="champ">
+            <label for="texte_intro">Un mot pour vos invités <small>(facultatif)</small></label>
+            <textarea id="texte_intro" name="texte_intro" rows="3" maxlength="1500"
+                      placeholder="Votre présence est notre plus beau cadeau. Pour ceux qui le souhaitent, une urne est à votre disposition.">{{ old('texte_intro', $intro) }}</textarea>
+        </div>
+        <div class="actions">
+            <button class="btn btn-primary">Enregistrer</button>
+            @if ($lienExterne)
+                <a href="{{ $lienExterne }}" target="_blank" rel="noopener" class="mini">Ouvrir la cagnotte</a>
+            @endif
+        </div>
+    </form>
+</div>
+
+@unless ($lienExterne)
 @if (! $configure)
     <p class="alerte alerte--erreur">
         Stripe n’est pas configuré sur cette installation. Contactez Solen.
@@ -108,5 +150,7 @@
         </div>
     @endif
 </div>
+
+@endunless
 
 @endsection
