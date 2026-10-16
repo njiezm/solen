@@ -58,6 +58,11 @@
                 <strong>Choisir ou prendre des photos</strong>
                 <small>Jusqu’à 20 à la fois · {{ $poidsMax }} Mo par photo</small>
             </label>
+            {{-- Prise de vue en direct : affichée seulement si le navigateur
+                 donne accès à la caméra. --}}
+            <button type="button" class="bouton bouton--contour bouton--large camera-ouvrir" id="camera-ouvrir" hidden>
+                <i class="fa-solid fa-camera-retro" aria-hidden="true"></i> Photo en direct
+            </button>
             <div class="apercus" id="apercus"></div>
 
             @if ($errors->any())
@@ -113,6 +118,33 @@
     </div>
 </dialog>
 
+<dialog class="modale camera" id="camera" aria-label="Prendre une photo">
+    <div class="camera-scene">
+        <video id="camera-flux" autoplay playsinline muted></video>
+        <img id="camera-cliche" alt="Votre photo" hidden>
+        <div class="camera-flash" id="camera-flash"></div>
+        <span class="camera-compte" id="camera-compte" hidden></span>
+    </div>
+    <p class="camera-message" id="camera-message"></p>
+    <div class="camera-commandes" data-etape="direct">
+        <button type="button" class="camera-rond" data-camera="retourner" aria-label="Changer de caméra">
+            <i class="fa-solid fa-camera-rotate" aria-hidden="true"></i>
+        </button>
+        <button type="button" class="camera-declencheur" data-camera="declencher" aria-label="Prendre la photo"></button>
+        <button type="button" class="camera-rond" data-camera="fermer" aria-label="Fermer">
+            <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+        </button>
+    </div>
+    <div class="camera-commandes" data-etape="cliche" hidden>
+        <button type="button" class="bouton bouton--contour" data-camera="reprendre">
+            <i class="fa-solid fa-rotate-left" aria-hidden="true"></i> Reprendre
+        </button>
+        <button type="button" class="bouton bouton--plein" data-camera="garder">
+            <i class="fa-solid fa-check" aria-hidden="true"></i> Garder
+        </button>
+    </div>
+</dialog>
+
 @push('scripts')
 <script>
 (() => {
@@ -130,6 +162,100 @@
         const n = champ.files.length;
         bouton.innerHTML = `<i class="fa-solid fa-paper-plane" aria-hidden="true"></i> Envoyer ${n > 1 ? n + ' photos' : 'la photo'}`;
     });
+
+    // ── Photo en direct ───────────────────────────────────────────────
+    // Chaque cliché gardé rejoint les fichiers du formulaire : l'envoi,
+    // le poids maximal et la modération restent ceux de la galerie.
+    const ouvrir  = document.getElementById('camera-ouvrir');
+    const camera  = document.getElementById('camera');
+    const flux    = document.getElementById('camera-flux');
+    const cliche  = document.getElementById('camera-cliche');
+    const message = document.getElementById('camera-message');
+    const compte  = document.getElementById('camera-compte');
+    const etapes  = camera?.querySelectorAll('[data-etape]') ?? [];
+    let flot = null, cote = 'environment', blob = null, gardees = 0;
+
+    if (ouvrir && camera?.showModal && navigator.mediaDevices?.getUserMedia && window.DataTransfer) {
+        ouvrir.hidden = false;
+    }
+
+    const etape = (nom) => etapes.forEach((e) => e.hidden = e.dataset.etape !== nom);
+
+    const couper = () => { flot?.getTracks().forEach((t) => t.stop()); flot = null; };
+
+    async function demarrer() {
+        couper();
+        message.textContent = '';
+        try {
+            flot = await navigator.mediaDevices.getUserMedia({ video: { facingMode: cote, width: { ideal: 1920 } }, audio: false });
+            flux.srcObject = flot;
+            // Le selfie en miroir, comme dans un miroir ; la vue arrière telle quelle.
+            flux.classList.toggle('miroir', cote === 'user');
+        } catch (e) {
+            message.textContent = 'Autorisez l’accès à la caméra pour prendre une photo.';
+        }
+    }
+
+    function montrer(enDirect) {
+        flux.hidden = !enDirect;
+        cliche.hidden = enDirect;
+        etape(enDirect ? 'direct' : 'cliche');
+    }
+
+    function declencher() {
+        if (!flux.videoWidth) return;
+        const c = document.createElement('canvas');
+        c.width = flux.videoWidth;
+        c.height = flux.videoHeight;
+        const ctx = c.getContext('2d');
+        if (cote === 'user') { ctx.translate(c.width, 0); ctx.scale(-1, 1); }
+        ctx.drawImage(flux, 0, 0);
+
+        const flash = document.getElementById('camera-flash');
+        flash.classList.add('actif');
+        setTimeout(() => flash.classList.remove('actif'), 60);
+
+        c.toBlob((b) => {
+            blob = b;
+            cliche.src = URL.createObjectURL(b);
+            montrer(false);
+        }, 'image/jpeg', 0.9);
+    }
+
+    function garder() {
+        if (!blob) return;
+        const dt = new DataTransfer();
+        [...champ.files].forEach((f) => dt.items.add(f));
+        dt.items.add(new File([blob], `photo-${Date.now()}.jpg`, { type: 'image/jpeg' }));
+        champ.files = dt.files;
+        champ.dispatchEvent(new Event('change'));
+
+        gardees++;
+        compte.textContent = `${gardees} photo${gardees > 1 ? 's' : ''} gardée${gardees > 1 ? 's' : ''}`;
+        compte.hidden = false;
+        blob = null;
+        montrer(true);
+    }
+
+    ouvrir?.addEventListener('click', () => {
+        gardees = 0;
+        compte.hidden = true;
+        montrer(true);
+        camera.showModal();
+        demarrer();
+    });
+
+    camera?.addEventListener('click', (e) => {
+        const action = e.target.closest('[data-camera]')?.dataset.camera;
+        if (action === 'declencher') declencher();
+        if (action === 'reprendre') { blob = null; montrer(true); }
+        if (action === 'garder') garder();
+        if (action === 'retourner') { cote = cote === 'user' ? 'environment' : 'user'; demarrer(); }
+        if (action === 'fermer') camera.close();
+    });
+
+    // Fermer la fenêtre, par le bouton ou par Échap, coupe la caméra.
+    camera?.addEventListener('close', couper);
 
     document.getElementById('envoi')?.addEventListener('submit', () => {
         bouton.disabled = true;

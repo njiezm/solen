@@ -318,7 +318,6 @@ Ils se diront le oui le plus tendre et plus doux.",
     private function poserCadre(Event $event): void
     {
         $source = public_path(self::DOSSIER . '/cadre-photobooth.png');
-        $chemin = "evenements/{$event->id}/photobooth/cadre-soizic-nylan.png";
 
         if (! is_file($source)) {
             $this->command?->warn('  Cadre introuvable : ' . $source);
@@ -326,8 +325,17 @@ Ils se diront le oui le plus tendre et plus doux.",
             return;
         }
 
+        // L'empreinte dans le nom : un cadre mis à jour change d'adresse, et
+        // aucun téléphone ne garde l'ancien en cache.
+        $chemin = "evenements/{$event->id}/photobooth/cadre-soizic-nylan-" . substr(md5_file($source), 0, 8) . '.png';
+        $ancien = $event->reglage('photobooth', 'cadre');
+
         Storage::disk('public')->put($chemin, file_get_contents($source));
         $event->ecrireReglages('photobooth', ['cadre' => $chemin]);
+
+        if ($ancien && $ancien !== $chemin && str_contains($ancien, '/cadre-soizic-nylan')) {
+            Storage::disk('public')->delete($ancien);
+        }
 
         $this->command?->info('  Cadre du photobooth posé.');
     }
