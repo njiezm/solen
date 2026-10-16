@@ -114,7 +114,8 @@ Ils se diront le oui le plus tendre et plus doux.",
         6 => 'photo-04.jpg',   // Le oui : en tenue, sous les guirlandes
     ];
 
-    private const PHOTOS_PUZZLE = ['photo-04.jpg', 'photo-08.jpg'];
+    // Les cinq places du puzzle : deux portraits, puis la séance au bord de l'eau.
+    private const PHOTOS_PUZZLE = ['photo-04.jpg', 'photo-08.jpg', 'photo-10.jpg', 'photo-11.jpg', 'photo-12.jpg'];
 
     /** Infos pratiques confirmées. Le nombre de places du parking reste à venir. */
     private const INFOS_PRATIQUES = [
@@ -137,6 +138,22 @@ Ils se diront le oui le plus tendre et plus doux.",
         DRAGEES : Douceurs offertes aux invités
         LUNE : Elle est de miel après la noce
         MOTS;
+
+    /**
+     * Hébergements conseillés au Diamant, recoupés en octobre 2026. Ni prix
+     * ni téléphone : ils viennent d'annuaires et changent trop vite.
+     */
+    private const HEBERGEMENTS = [
+        ['nom' => 'Diamant Les Bains', 'adresse' => '92 rue Justin Roc, 97223 Le Diamant',
+         'distance' => 'Dans le bourg, à pied de l’église'],
+        ['nom' => 'Marine Hôtel Diamant', 'adresse' => 'Pointe de la Chéry, 97223 Le Diamant',
+         'distance' => 'À environ 2 km du bourg'],
+        ['nom' => 'Diamant Beach', 'adresse' => 'Ravine Gens Bois, 97223 Le Diamant',
+         'distance' => 'En bord de mer, face au rocher du Diamant'],
+    ];
+
+    /** La cérémonie : l'église Saint-Thomas, dans le bourg du Diamant. */
+    private const CEREMONIE = ['lieu_nom' => 'Église Saint-Thomas', 'lieu_adresse' => 'Bourg du Diamant, 97223 Le Diamant'];
 
     /** Le contact du jour J. */
     private const CONTACT_JOUR = ['contact_nom' => 'Alvee', 'contact_telephone' => '+596 696 35 29 85'];
@@ -171,7 +188,7 @@ Ils se diront le oui le plus tendre et plus doux.",
         ['image' => self::DOSSIER . '/deco-marguerite.png',      'emplacement' => 'haut-droite', 'largeur' => 130, 'debord' => 28],
         ['image' => self::DOSSIER . '/deco-marguerite.png',      'emplacement' => 'bas-gauche',  'largeur' => 95,  'debord' => 30],
         // Les prénoms et la date, à la place du texte en couverture.
-        ['image' => self::DOSSIER . '/prenoms.png', 'emplacement' => 'titre'],
+        ['image' => self::DOSSIER . '/prenoms-hd.png', 'emplacement' => 'titre'],
         ['image' => self::DOSSIER . '/date.svg',    'emplacement' => 'date'],
     ];
 
@@ -389,6 +406,21 @@ Ils se diront le oui le plus tendre et plus doux.",
      */
     private function ecrirePratique(Event $event): void
     {
+        foreach (self::HEBERGEMENTS as $i => $hebergement) {
+            $bloc = ContentBlock::where('page', 'pratique')->where('type', 'hebergement')->get()
+                ->first(fn ($b) => ($b->donnees['nom'] ?? null) === $hebergement['nom']);
+
+            $bloc
+                ? $bloc->update(['donnees' => $hebergement + (array) $bloc->donnees])
+                : ContentBlock::create(['page' => 'pratique', 'type' => 'hebergement', 'donnees' => $hebergement, 'ordre' => 10 + $i, 'actif' => true]);
+        }
+
+        // Le lieu de la cérémonie, tant que le couple ne l'a pas renseigné.
+        $ceremonie = EventPart::where('cle', 'ceremonie')->first();
+        if ($ceremonie && ! $ceremonie->lieu_nom) {
+            $ceremonie->update(self::CEREMONIE);
+        }
+
         foreach (self::INFOS_PRATIQUES as $i => $info) {
             $bloc = ContentBlock::where('page', 'pratique')->where('type', 'info')->get()
                 ->first(fn ($b) => ($b->donnees['titre'] ?? null) === $info['titre']);
@@ -400,7 +432,7 @@ Ils se diront le oui le plus tendre et plus doux.",
 
         $event->ecrireReglages('pratique', self::CONTACT_JOUR);
 
-        $this->command?->info('  Infos pratiques : parking, contact du jour J.');
+        $this->command?->info('  Infos pratiques : ' . count(self::HEBERGEMENTS) . ' hébergements, parking, contact du jour J, église.');
     }
 
     /** Copie une photo dans le stockage du mariage, comme un dépôt du couple. */
