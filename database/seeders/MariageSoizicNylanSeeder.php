@@ -72,10 +72,9 @@ class MariageSoizicNylanSeeder extends Seeder
     ];
 
     private const DECORS = [
-        // Les trois fleurs du visuel, redessinées en entier : le lys étoilé,
-        // la gerbe de pétales effilés et la marguerite.
-        ['image' => self::DOSSIER . '/deco-lys.svg',         'emplacement' => 'haut-gauche', 'largeur' => 240, 'opacite' => .55, 'debord' => 18],
-        ['image' => self::DOSSIER . '/deco-gerbe.svg',       'emplacement' => 'bas-droite',  'largeur' => 300, 'opacite' => .55, 'debord' => 8],
+        // Le lys extrait du visuel, en attendant des fleurs plus complètes.
+        ['image' => self::DOSSIER . '/deco-lys.png',         'emplacement' => 'haut-gauche', 'largeur' => 230, 'opacite' => .55],
+        ['image' => self::DOSSIER . '/deco-lys.png',         'emplacement' => 'bas-droite',  'largeur' => 230, 'opacite' => .55, 'miroir' => true],
         ['image' => self::DOSSIER . '/deco-marguerite.svg',  'emplacement' => 'haut-droite', 'largeur' => 130, 'debord' => 28],
         ['image' => self::DOSSIER . '/deco-marguerite.svg',  'emplacement' => 'bas-gauche',  'largeur' => 90,  'debord' => 30],
     ];
