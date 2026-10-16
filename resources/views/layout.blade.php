@@ -15,9 +15,10 @@
 
     // Aperçu du lien partagé : l'image prévue pour, sinon la couverture.
     $partage = $event->reglage('site', 'image_partage') ?: $event->reglage('site', 'photo_couverture');
-    $partage = $partage
+    // Adresse complète : WhatsApp et Messenger ignorent une image relative.
+    $partage = url($partage
         ? (Str::startsWith($partage, ['http', '/']) ? $partage : Storage::url($partage))
-        : asset('images/preview-mariage.png');
+        : asset('images/preview-mariage.png'));
 
     $surCouverture = request()->routeIs('landing');
     $nav       = app(App\Solen\NavigationInvite::class);

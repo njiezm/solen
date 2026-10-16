@@ -42,7 +42,11 @@
              src="{{ Str::startsWith($couverture, ['http', '/']) ? $couverture : Storage::url($couverture) }}">
     @endif
 
-    <h1>{{ $event->nom }}</h1>
+    @if ($visuelTitre = $event->theme?->visuel('titre'))
+        <h1>@include('partials.visuel', ['chemin' => $visuelTitre, 'alt' => $event->nom, 'classe' => 'visuel-titre visuel-titre--accueil'])</h1>
+    @else
+        <h1>{{ $event->nom }}</h1>
+    @endif
 
     @if ($accueil)
         <p class="accueil-tete-mot">{{ $accueil }}</p>

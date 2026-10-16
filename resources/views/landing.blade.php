@@ -14,6 +14,8 @@
     $lieu       = $event->parts->firstWhere('lieu_nom', '!=', null);
     $p1 = $event->partenaire_1;
     $p2 = $event->partenaire_2;
+    $visuelTitre = $event->theme?->visuel('titre');
+    $visuelDate  = $event->theme?->visuel('date');
 @endphp
 
 <section class="couverture {{ $couverture ? 'couverture--photo' : '' }}">
@@ -30,7 +32,9 @@
         <p class="couverture-sur">Nous nous marions</p>
 
         <h1 class="couverture-titre">
-            @if ($p1 && $p2)
+            @if ($visuelTitre)
+                @include('partials.visuel', ['chemin' => $visuelTitre, 'alt' => $event->nom, 'classe' => 'visuel-titre'])
+            @elseif ($p1 && $p2)
                 {{ $p1 }} <span class="et">&amp;</span> {{ $p2 }}
             @else
                 {{ $event->nom }}
@@ -41,7 +45,9 @@
             <p class="couverture-mot">{{ $mot }}</p>
         @endif
 
-        @if ($event->dateLocale())
+        @if ($visuelDate)
+            @include('partials.visuel', ['chemin' => $visuelDate, 'alt' => $event->dateLocale()?->translatedFormat('l j F Y') ?? '', 'classe' => 'visuel-date'])
+        @elseif ($event->dateLocale())
             <span class="couverture-date">{{ $event->dateLocale()->format('d · m · Y') }}</span>
         @endif
 

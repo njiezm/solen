@@ -3,7 +3,16 @@
 namespace App\Http\Controllers\Console;
 
 use App\Http\Controllers\Controller;
+use App\Models\ChassePhoto;
 use App\Models\Event;
+use App\Models\JeuChassePhoto;
+use App\Models\JeuQuiDeux;
+use App\Models\Participant;
+use App\Models\ReponseQuiDeux;
+use App\Models\ScoreJeu;
+use App\Models\SessionJeu;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use App\Models\EventPart;
 use App\Models\Plan;
 use App\Models\Theme;
@@ -110,6 +119,47 @@ class MariageController extends Controller
      * Suppression réversible : les données restent en base trente jours,
      * le temps qu'un client change d'avis ou signale une erreur.
      */
+    /**
+     * Remet les jeux d'un mariage à zéro : scores, réponses, photos de la
+     * chasse. Utile après des parties d'essai, avant le jour J.
+     *
+     * Les participants qui n'ont fait que jouer disparaissent avec ; ceux
+     * qui ont aussi laissé une photo, un mot ou un don sont gardés, leurs
+     * contributions avec. Les questions et réglages des jeux ne bougent pas.
+     */
+    public function viderJeux(string $slug): RedirectResponse
+    {
+        $event = Event::where('slug', $slug)->firstOrFail();
+
+        $bilan = DB::transaction(function () use ($event) {
+            $photos = ChassePhoto::pourEvenement($event)->pluck('photo_path')
+                ->concat(JeuChassePhoto::pourEvenement($event)->pluck('photo_path'))
+                ->filter();
+
+            $scores = ScoreJeu::pourEvenement($event)->delete();
+            ReponseQuiDeux::pourEvenement($event)->delete();
+            JeuQuiDeux::pourEvenement($event)->delete();
+            ChassePhoto::pourEvenement($event)->delete();
+            JeuChassePhoto::pourEvenement($event)->delete();
+            SessionJeu::pourEvenement($event)->delete();
+
+            // Un participant sans photo, sans mot et sans don n'existait
+            // que pour les jeux.
+            $joueurs = Participant::pourEvenement($event)
+                ->whereNotExists(fn ($q) => $q->from('photos')->whereColumn('photos.participant_id', 'participants.id'))
+                ->whereNotExists(fn ($q) => $q->from('livre_ors')->whereColumn('livre_ors.participant_id', 'participants.id'))
+                ->whereNotExists(fn ($q) => $q->from('urne_dons')->whereColumn('urne_dons.participant_id', 'participants.id'))
+                ->delete();
+
+            return ['scores' => $scores, 'joueurs' => $joueurs, 'photos' => $photos];
+        });
+
+        // Les fichiers après la transaction : un échec n'efface rien en base.
+        Storage::disk('public')->delete($bilan['photos']->all());
+
+        return back()->with('ok', "Jeux remis à zéro : {$bilan['scores']} score(s) et {$bilan['joueurs']} participant(s) supprimés.");
+    }
+
     public function supprimer(Request $request, string $slug): RedirectResponse
     {
         $event = Event::where('slug', $slug)->firstOrFail();

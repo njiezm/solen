@@ -85,6 +85,7 @@ class ConsoleController extends Controller
             'membres'       => $event->users()->orderBy('name')->get(),
             'modulesActifs' => $event->modules()->wherePivot('actif', true)->count(),
             'modulesTotal'  => $event->modules()->count(),
+            'joueurs'       => \App\Models\ScoreJeu::pourEvenement($event)->distinct()->count('participant_id'),
         ]);
     }
 }

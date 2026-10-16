@@ -286,6 +286,17 @@ class Theme extends Model
             ->all();
     }
 
+    /**
+     * Les visuels de titre d'un thème sur mesure : les prénoms calligraphiés
+     * et la date du faire-part, affichés à la place du texte en couverture
+     * et en tête de l'accueil. Rangés avec les décors (emplacements
+     * « titre » et « date »), sans colonne de plus.
+     */
+    public function visuel(string $emplacement): ?string
+    {
+        return collect((array) $this->decors)->firstWhere('emplacement', $emplacement)['image'] ?? null;
+    }
+
     /** Le nom de l'ornement, utilisé comme classe sur le body. */
     public function ornement(): string
     {

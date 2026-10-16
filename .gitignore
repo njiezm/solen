@@ -21,3 +21,10 @@
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# Fichiers bruts fournis par les couples : seules les versions allégées
+# (photos-web, deco-*, cadre-photobooth) vont dans Git.
+/public/images/mariagenylan/photos/
+/public/images/mariagenylan/puzzle/
+/public/images/mariagenylan/assets/
+/public/images/mariagenylan/Cadre photobooth.png

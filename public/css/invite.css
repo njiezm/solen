@@ -1232,3 +1232,14 @@ body:has(.puzzle) input { -webkit-user-select: text; user-select: text; }
     font-size: .85rem; font-weight: 600; color: var(--c-accent-carte);
 }
 
+/* --- Visuels de titre (prénoms, date du faire-part) ------------------- */
+
+.visuel { display: block; margin-inline: auto; }
+.visuel svg { display: block; width: 100%; height: auto; }
+.visuel-titre { width: min(100%, 520px); height: auto; }
+.visuel-titre--accueil { width: min(100%, 380px); }
+.visuel-date { width: min(70%, 260px); margin-top: 2rem; }
+/* Sur une photo, le trait noir passe en blanc pour rester lisible. */
+.couverture--photo .visuel-titre, .accueil-tete--photo .visuel-titre { filter: brightness(0) invert(1); }
+.couverture--photo .visuel-date text:not([class*="c-3"]):not([class*="c-2"]) { fill: #FFFFFF; }
+

@@ -269,6 +269,23 @@ Voici les documents de votre mariage.</textarea></div>
     </div>
 </form>
 
+<div class="carte" style="margin-top:2rem">
+    <h2>Remettre les jeux à zéro</h2>
+    <p class="carte-aide">
+        Efface scores, classement, réponses et photos de la chasse —
+        par exemple après des parties d’essai. Les participants qui n’ont fait que jouer
+        sont supprimés ; ceux qui ont laissé une photo, un mot ou un don sont gardés.
+        Les questions et réglages des jeux ne bougent pas.
+        <strong>{{ $joueurs }}</strong> joueur{{ $joueurs > 1 ? 's' : '' }} au classement actuellement.
+    </p>
+
+    <form method="POST" action="{{ route('console.mariage.jeux.vider', $mariage->slug) }}"
+          onsubmit="return confirm('Remettre tous les jeux de {{ e($mariage->nom) }} à zéro ? C’est définitif.')">
+        @csrf
+        <button class="mini mini--danger" style="padding:.62rem 1.1rem" @disabled($joueurs === 0)>Vider les participants aux jeux</button>
+    </form>
+</div>
+
 <div class="carte" style="margin-top:2rem; border-color:#F0D3D0">
     <h2>Archiver ce mariage</h2>
     <p class="carte-aide">

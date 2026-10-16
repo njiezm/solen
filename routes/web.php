@@ -142,6 +142,7 @@ Route::prefix('console')
         Route::post('/mariages/{slug}/accompagnement', [MariageController::class, 'accompagnement'])->name('mariage.accompagnement');
         Route::post('/mariages/{slug}/remise', [MariageController::class, 'remettre'])->name('mariage.remise');
         Route::delete('/mariages/{slug}', [MariageController::class, 'supprimer'])->name('mariage.supprimer');
+        Route::post('/mariages/{slug}/jeux/vider', [MariageController::class, 'viderJeux'])->name('mariage.jeux.vider');
 
         // Facturation Solen by NJIEZM.FR : devis, factures, avoirs.
         Route::prefix('facturation')->name('facturation')->group(function () {
