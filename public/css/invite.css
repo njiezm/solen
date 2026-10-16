@@ -1308,3 +1308,22 @@ body:has(.puzzle) input { -webkit-user-select: text; user-select: text; }
     font-size: 1.1rem;
 }
 
+/* --- Grilles de photos : pagination et diaporama ---------------------- */
+
+.pagination-photos { display: flex; align-items: center; justify-content: center; gap: .8rem; margin-top: 1rem; font-size: .9rem; }
+.pagination-photos [aria-disabled="true"] { opacity: .35; pointer-events: none; }
+.diaporama { width: min(96vw, 1100px); }
+.diaporama-scene { position: relative; display: grid; place-items: center; min-height: min(60svh, 520px); background: #0B0B0F; touch-action: pan-y; }
+.diaporama-scene img { user-select: none; -webkit-user-drag: none; }
+.diaporama-fleche {
+    position: absolute; top: 50%; translate: 0 -50%;
+    display: grid; place-items: center; width: 44px; height: 44px;
+    border: 0; border-radius: 50%; background: rgb(255 255 255 / .16); color: #fff; font-size: 1.1rem;
+    backdrop-filter: blur(4px);
+}
+.diaporama-fleche:hover { background: rgb(255 255 255 / .28); }
+.diaporama-fleche--prec { left: .6rem; }
+.diaporama-fleche--suiv { right: .6rem; }
+.diaporama-fleche[hidden] { display: none; }
+.diaporama-auteur { opacity: .75; }
+

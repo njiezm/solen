@@ -76,47 +76,22 @@
     @endif
 </div>
 
-<section class="section">
+<section class="section" id="photos">
     <div class="section-tete">
         <h2>Les photos des invités</h2>
-        @if ($photos->isNotEmpty())
-            <span class="doux">{{ $photos->count() }}</span>
+        @if ($photos->total())
+            <span class="doux">{{ $photos->total() }}</span>
         @endif
     </div>
 
-    @if ($photos->isEmpty())
-        <div class="vide">
-            <i class="fa-regular fa-image" aria-hidden="true"></i>
-            Aucune photo pour l’instant. Soyez le premier à partager la vôtre !
-        </div>
-    @else
-        <div class="mosaique">
-            @foreach ($photos as $photo)
-                <button type="button" class="mosaique-item" data-photo="{{ Storage::url($photo->path) }}"
-                        data-auteur="{{ $photo->participant?->prenom }}">
-                    <img src="{{ Storage::url($photo->path) }}" alt="Photo de {{ $photo->participant?->prenom }}" loading="lazy">
-                </button>
-            @endforeach
-        </div>
-    @endif
+    @include('partials.mosaique-photos', [
+        'photos'         => $photos,
+        'diaporama'      => $diaporama,
+        'telechargement' => $telechargement,
+        'ancre'          => 'galerie',
+        'vide'           => 'Aucune photo pour l’instant. Soyez le premier à partager la vôtre !',
+    ])
 </section>
-
-<dialog class="visionneuse" id="visionneuse" aria-label="Photo">
-    <img id="visionneuse-image" alt="">
-    <div class="visionneuse-barre">
-        <span id="visionneuse-auteur"></span>
-        <span style="display:flex; gap:.5rem">
-            @if ($telechargement)
-                <a id="visionneuse-telecharger" class="bouton bouton--clair bouton--petit" download>
-                    <i class="fa-solid fa-download" aria-hidden="true"></i> Enregistrer
-                </a>
-            @endif
-            <button type="button" class="bouton bouton--clair bouton--petit" data-fermer>
-                <i class="fa-solid fa-xmark" aria-hidden="true"></i> Fermer
-            </button>
-        </span>
-    </div>
-</dialog>
 
 <dialog class="modale camera" id="camera" aria-label="Prendre une photo">
     <div class="camera-scene">
@@ -262,16 +237,6 @@
         bouton.innerHTML = '<i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i> Envoi en cours…';
     });
 
-    const v = document.getElementById('visionneuse');
-    document.querySelectorAll('[data-photo]').forEach((b) => b.addEventListener('click', () => {
-        document.getElementById('visionneuse-image').src = b.dataset.photo;
-        document.getElementById('visionneuse-auteur').textContent = b.dataset.auteur ? `Par ${b.dataset.auteur}` : '';
-        const t = document.getElementById('visionneuse-telecharger');
-        if (t) t.href = b.dataset.photo;
-        v.showModal();
-    }));
-    v.querySelector('[data-fermer]').addEventListener('click', () => v.close());
-    v.addEventListener('click', (e) => { if (e.target === v) v.close(); });
 })();
 </script>
 @endpush

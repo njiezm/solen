@@ -33,6 +33,7 @@ class PhotoboothController extends Controller
         abort_unless($event->aModule('photobooth'), 404, 'Le photobooth n’est pas activé pour ce mariage.');
 
         $cadre = $event->reglage('photobooth', 'cadre');
+        $photos = Photo::publies()->duPhotobooth()->with('participant')->latest();
 
         return view('pages.photobooth', [
             'borne'      => $event->photoboothEnBorne(),
@@ -43,6 +44,10 @@ class PhotoboothController extends Controller
             'filigrane'  => (bool) $event->reglage('photobooth', 'filigrane', true),
             'apres'      => $event->reglage('photobooth', 'message_apres', 'Merci ! Votre photo rejoint le mur.'),
             'signature'  => trim($event->nom . ' · ' . ($event->dateLocale()?->format('d.m.Y') ?? '')),
+            // Dix par page dans la grille ; toutes dans le diaporama.
+            'photos'         => (clone $photos)->paginate(10)->fragment('photos'),
+            'diaporama'      => Photo::diaporama($photos->get()),
+            'telechargement' => (bool) $event->reglage('mur', 'telechargement', true),
         ]);
     }
 

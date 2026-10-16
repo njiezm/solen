@@ -45,3 +45,8 @@ Schedule::call(function () {
 // Les scans de QR codes ne sont gardés que 90 jours (voir QrCodeScan).
 Schedule::command('model:prune', ['--model' => [App\Models\QrCodeScan::class]])
     ->dailyAt('04:30')->name('purge-scans-qr')->onOneServer();
+
+// La corbeille des remises à zéro : une sauvegarde restaurée ou vieille de
+// plus de trente jours est supprimée pour de bon (voir App\Solen\Corbeille).
+Schedule::call(fn () => app(App\Solen\Corbeille::class)->purger())
+    ->dailyAt('04:45')->name('purge-corbeille')->onOneServer();

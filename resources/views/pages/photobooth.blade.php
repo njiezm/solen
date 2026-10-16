@@ -35,7 +35,14 @@
         width: 100%; height: 100%; object-fit: cover; display: block;
     }
     /* La caméra frontale est plus naturelle en miroir. */
-    .booth-scene video { transform: scaleX(-1); }
+    .booth-scene video.miroir { transform: scaleX(-1); }
+    /* Retourner la caméra : selfie ou caméra arrière (un ami photographie). */
+    .booth-retourner {
+        position: absolute; top: .7rem; right: .7rem; z-index: 3;
+        display: grid; place-items: center; width: 44px; height: 44px;
+        border: 0; border-radius: 50%; background: rgb(0 0 0 / .5); color: #fff; font-size: 1.1rem;
+    }
+    .booth-retourner[hidden] { display: none; }
     /* Cadre à fenêtre : la scène prend le format du cadre, la caméra
        se loge dans sa zone transparente. */
     .booth-scene.avec-fenetre { background: #fff; }
@@ -101,7 +108,10 @@
     <p class="text-center mb-4 booth-consigne">{{ $consigne }}</p>
 
     <div class="booth-scene">
-        <video id="flux" autoplay playsinline muted></video>
+        <video id="flux" class="miroir" autoplay playsinline muted></video>
+        <button type="button" class="booth-retourner" id="retourner" aria-label="Retourner la caméra" hidden>
+            <i class="fa-solid fa-camera-rotate" aria-hidden="true"></i>
+        </button>
         <canvas id="rendu" hidden></canvas>
         <img id="apercu" hidden alt="Votre photo">
         @if ($cadre)
@@ -149,6 +159,24 @@
     </p>
 </div>
 
+{{-- Les clichés du photobooth : paginés, en diaporama, à télécharger. --}}
+<section class="section" id="photos" style="max-width:820px; margin-inline:auto">
+    <div class="section-tete">
+        <h2>Les photos du photobooth</h2>
+        @if ($photos->total())
+            <span class="doux">{{ $photos->total() }}</span>
+        @endif
+    </div>
+
+    @include('partials.mosaique-photos', [
+        'photos'         => $photos,
+        'diaporama'      => $diaporama,
+        'telechargement' => $telechargement,
+        'ancre'          => 'photobooth',
+        'vide'           => 'Aucune photo pour l’instant. À vous de jouer !',
+    ])
+</section>
+
 <script>
 (() => {
     const b = document.getElementById('booth');
@@ -190,6 +218,9 @@
     const attendre = (ms) => new Promise((r) => setTimeout(r, ms));
 
     // ── Caméra ───────────────────────────────────────────────────────
+    let cote = 'user';
+    let flot = null;
+
     async function demarrerCamera() {
         if (!navigator.mediaDevices?.getUserMedia) {
             dire('Votre navigateur ne permet pas d’accéder à la caméra.', true);
@@ -197,11 +228,22 @@
             return;
         }
 
+        flot?.getTracks().forEach((t) => t.stop());
+
         try {
-            flux.srcObject = await navigator.mediaDevices.getUserMedia({
-                video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 1707 } },
+            flot = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: cote, width: { ideal: 1280 }, height: { ideal: 1707 } },
                 audio: false,
             });
+            flux.srcObject = flot;
+            // Le selfie en miroir, comme dans une glace ; la caméra arrière telle quelle.
+            flux.classList.toggle('miroir', cote === 'user');
+            bDeclencher.disabled = false;
+            dire('');
+
+            // Le bouton n'apparaît que s'il y a plus d'une caméra.
+            const cameras = (await navigator.mediaDevices.enumerateDevices()).filter((d) => d.kind === 'videoinput');
+            document.getElementById('retourner').hidden = cameras.length < 2;
         } catch (e) {
             dire('Autorisez l’accès à la caméra pour utiliser le photobooth.', true);
             bDeclencher.disabled = true;
@@ -276,9 +318,12 @@
         c.height = flux.videoHeight;
 
         const ctx = c.getContext('2d');
-        // On retourne l'image pour qu'elle corresponde à ce que l'invité a vu.
-        ctx.translate(c.width, 0);
-        ctx.scale(-1, 1);
+        // Le selfie est enregistré tel que l'invité l'a vu, en miroir ; la
+        // caméra arrière, telle quelle.
+        if (cote === 'user') {
+            ctx.translate(c.width, 0);
+            ctx.scale(-1, 1);
+        }
         ctx.drawImage(flux, 0, 0);
 
         return c;
@@ -467,6 +512,12 @@
     bDeclencher.addEventListener('click', sequence);
     bRecommencer.addEventListener('click', reprendre);
     bValider.addEventListener('click', envoyer);
+
+    document.getElementById('retourner').addEventListener('click', () => {
+        if (occupe) return;
+        cote = cote === 'user' ? 'environment' : 'user';
+        demarrerCamera();
+    });
 
     analyserCadre();
     demarrerCamera();

@@ -25,8 +25,12 @@ class GalerieController extends Controller
     {
         $event = $this->courant->get();
 
+        $photos = Photo::publies()->with('participant')->latest();
+
         return view('pages.galerie', [
-            'photos'         => Photo::publies()->with('participant')->latest()->get(),
+            // Dix par page dans la grille ; toutes dans le diaporama.
+            'photos'         => (clone $photos)->paginate(10)->fragment('photos'),
+            'diaporama'      => Photo::diaporama($photos->get()),
             'consigne'       => $event->reglage('mur', 'texte_intro', 'Partagez vos plus belles photos de la journée.'),
             'poidsMax'       => (int) $event->reglage('mur', 'taille_max_mo', 10),
             'telechargement' => (bool) $event->reglage('mur', 'telechargement', true),

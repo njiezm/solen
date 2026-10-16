@@ -269,21 +269,69 @@ Voici les documents de votre mariage.</textarea></div>
     </div>
 </form>
 
+@php
+    $remises = [
+        'jeux'       => ['Vider les participants aux jeux', $joueurs, 'joueur', 'scores, classement, réponses et photos de la chasse ; les participants qui n’ont fait que jouer'],
+        'galerie'    => ['Vider la galerie', $photosGalerie, 'photo', 'les photos partagées par les invités'],
+        'photobooth' => ['Vider le photobooth', $photosBooth, 'photo', 'les clichés pris au photobooth'],
+    ];
+@endphp
 <div class="carte" style="margin-top:2rem">
-    <h2>Remettre les jeux à zéro</h2>
+    <h2>Remettre à zéro</h2>
     <p class="carte-aide">
-        Efface scores, classement, réponses et photos de la chasse —
-        par exemple après des parties d’essai. Les participants qui n’ont fait que jouer
-        sont supprimés ; ceux qui ont laissé une photo, un mot ou un don sont gardés.
+        Après des essais, avant le jour J. Rien n’est perdu : tout ce qui est vidé part dans la
+        corbeille ci-dessous, restaurable en un clic pendant {{ \App\Models\Sauvegarde::DUREE_JOURS }} jours.
         Les questions et réglages des jeux ne bougent pas.
-        <strong>{{ $joueurs }}</strong> joueur{{ $joueurs > 1 ? 's' : '' }} au classement actuellement.
     </p>
+    <div class="liste">
+        @foreach ($remises as $quoi => [$libelle, $nombre, $unite, $detail])
+            <div class="ligne">
+                <div class="corps">
+                    <strong>{{ $libelle }}</strong>
+                    <span>{{ $nombre }} {{ $unite }}{{ $nombre > 1 ? 's' : '' }} · {{ $detail }}</span>
+                </div>
+                <div class="outils">
+                    <form method="POST" action="{{ route('console.mariage.vider', [$mariage->slug, $quoi]) }}"
+                          onsubmit="return confirm('{{ $libelle }} de {{ e($mariage->nom) }} ? Une sauvegarde est gardée dans la corbeille.')">
+                        @csrf
+                        <button class="mini mini--danger" @disabled($nombre === 0)>Vider</button>
+                    </form>
+                </div>
+            </div>
+        @endforeach
+    </div>
+</div>
 
-    <form method="POST" action="{{ route('console.mariage.jeux.vider', $mariage->slug) }}"
-          onsubmit="return confirm('Remettre tous les jeux de {{ e($mariage->nom) }} à zéro ? C’est définitif.')">
-        @csrf
-        <button class="mini mini--danger" style="padding:.62rem 1.1rem" @disabled($joueurs === 0)>Vider les participants aux jeux</button>
-    </form>
+<div class="carte" style="margin-top:1rem">
+    <h2>Corbeille</h2>
+    @if ($sauvegardes->isEmpty())
+        <p class="carte-aide" style="margin:0">Aucune remise à zéro pour l’instant.</p>
+    @else
+        <div class="liste">
+            @foreach ($sauvegardes as $s)
+                <div class="ligne @unless($s->restaurable()) inactive @endunless">
+                    <div class="corps">
+                        <strong>{{ $s->libelle }} — {{ $s->nombre }} élément(s)</strong>
+                        <span>
+                            Vidé le {{ $s->created_at->translatedFormat('j M Y à H\hi') }} ·
+                            @if ($s->restauree_le) restauré le {{ $s->restauree_le->translatedFormat('j M à H\hi') }}
+                            @elseif ($s->restaurable()) restaurable jusqu’au {{ $s->expireLe()->translatedFormat('j M Y') }}
+                            @else expiré @endif
+                        </span>
+                    </div>
+                    <div class="outils">
+                        @if ($s->restaurable())
+                            <form method="POST" action="{{ route('console.mariage.restaurer', [$mariage->slug, $s->id]) }}"
+                                  onsubmit="return confirm('Restaurer « {{ e($s->libelle) }} » ?')">
+                                @csrf
+                                <button class="mini">Restaurer</button>
+                            </form>
+                        @endif
+                    </div>
+                </div>
+            @endforeach
+        </div>
+    @endif
 </div>
 
 <div class="carte" style="margin-top:2rem; border-color:#F0D3D0">

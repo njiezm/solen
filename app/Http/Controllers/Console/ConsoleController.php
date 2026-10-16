@@ -86,6 +86,9 @@ class ConsoleController extends Controller
             'modulesActifs' => $event->modules()->wherePivot('actif', true)->count(),
             'modulesTotal'  => $event->modules()->count(),
             'joueurs'       => \App\Models\ScoreJeu::pourEvenement($event)->distinct()->count('participant_id'),
+            'photosGalerie' => Photo::pourEvenement($event)->where('path', 'not like', '%/photobooth/%')->count(),
+            'photosBooth'   => Photo::pourEvenement($event)->duPhotobooth()->count(),
+            'sauvegardes'   => \App\Models\Sauvegarde::where('event_id', $event->id)->latest()->limit(10)->get(),
         ]);
     }
 }
