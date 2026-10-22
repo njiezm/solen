@@ -47,7 +47,7 @@
         ];
     @endphp
     <div class="puzzle-chargement" role="status" aria-live="polite">
-        <span class="puzzle-chargeur" aria-hidden="true"><i class="fa-solid fa-heart"></i></span>
+        <span class="puzzle-chargeur" aria-hidden="true"><i>♥</i></span>
         <p>{{ \Illuminate\Support\Arr::random($phrases) }}</p>
     </div>
 </div>
