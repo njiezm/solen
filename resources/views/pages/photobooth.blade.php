@@ -26,10 +26,15 @@
         display: grid; place-items: center;
     }
     @media (max-width: 767px) {
-        /* En-tête, barre basse, titre et bouton. */
-        .booth-scene { --booth-reserve: calc(var(--h-entete) + var(--h-barre) + 10.5rem); }
-        .booth .ceremony-heading { font-size: 1.6rem; margin-bottom: .2rem; }
-        .booth .booth-consigne { margin-bottom: .8rem !important; font-size: .95rem; }
+        /* Estimation avant le calcul exact du script (ajusterScene). */
+        .booth-scene { --booth-reserve: calc(var(--h-entete) + var(--h-barre) + 19rem); }
+        .booth .ceremony-heading { font-size: 1.5rem; margin-bottom: .1rem; }
+        .booth .booth-consigne { margin-bottom: .6rem !important; font-size: .92rem; }
+        .booth .booth-identite { margin-top: .5rem; }
+        .booth .booth-identite input { padding: .5rem .75rem; }
+        .booth .booth-mention { margin-top: .25rem; font-size: .7rem; }
+        .booth .booth-actions { margin-top: .6rem; gap: .4rem; }
+        .booth .booth-actions .btn { padding: .55rem .9rem; }
     }
     .booth-scene video, .booth-scene canvas, .booth-scene img {
         width: 100%; height: 100%; object-fit: cover; display: block;
@@ -109,7 +114,7 @@
 
     <div class="booth-scene">
         <video id="flux" class="miroir" autoplay playsinline muted></video>
-        <button type="button" class="booth-retourner" id="retourner" aria-label="Retourner la caméra" hidden>
+        <button type="button" class="booth-retourner" id="retourner" aria-label="Retourner la caméra">
             <i class="fa-solid fa-camera-rotate" aria-hidden="true"></i>
         </button>
         <canvas id="rendu" hidden></canvas>
@@ -120,17 +125,6 @@
         <div class="booth-rebours" id="rebours" hidden></div>
         <div class="booth-flash" id="flash"></div>
         <div class="booth-etat" id="etat" hidden></div>
-    </div>
-
-    {{-- Le déclencheur juste sous la photo : on le voit sans défiler. --}}
-    <div class="booth-actions">
-        <button class="btn btn-pro-primary" id="declencher">
-            <i class="fa-solid fa-camera me-2"></i> Prendre la photo
-        </button>
-        <button class="btn btn-outline-secondary" id="recommencer" hidden>Recommencer</button>
-        <button class="btn btn-pro-primary" id="valider" hidden>
-            <i class="fa-solid fa-check me-2"></i> Envoyer aux mariés
-        </button>
     </div>
 
     <div class="booth-identite">
@@ -146,6 +140,23 @@
                maxlength="255" autocomplete="email" inputmode="email">
     </div>
     <p class="booth-mention">Votre adresse ne sert qu’à vous envoyer ce cliché.</p>
+
+    {{-- Les boutons sous le formulaire, là où on les cherche. La scène est
+         dimensionnée pour que tout tienne à l'écran, sans défiler. --}}
+    <div class="booth-actions" id="booth-actions">
+        <button class="btn btn-pro-primary" id="declencher">
+            <i class="fa-solid fa-camera me-2"></i> Prendre la photo
+        </button>
+        <button class="btn btn-outline-secondary" id="recommencer" hidden>
+            <i class="fa-solid fa-rotate-left me-1"></i> Recommencer
+        </button>
+        <a class="btn btn-outline-secondary" id="telecharger" hidden download>
+            <i class="fa-solid fa-download me-1"></i> Télécharger
+        </a>
+        <button class="btn btn-pro-primary" id="valider" hidden>
+            <i class="fa-solid fa-check me-2"></i> Envoyer aux mariés
+        </button>
+    </div>
 
     <p class="booth-message" id="message"></p>
 
@@ -204,6 +215,7 @@
     const bDeclencher  = document.getElementById('declencher');
     const bRecommencer = document.getElementById('recommencer');
     const bValider     = document.getElementById('valider');
+    const bTelecharger = document.getElementById('telecharger');
 
     if (conf.borne) document.body.classList.add('borne');
 
@@ -241,9 +253,6 @@
             bDeclencher.disabled = false;
             dire('');
 
-            // Le bouton n'apparaît que s'il y a plus d'une caméra.
-            const cameras = (await navigator.mediaDevices.enumerateDevices()).filter((d) => d.kind === 'videoinput');
-            document.getElementById('retourner').hidden = cameras.length < 2;
         } catch (e) {
             dire('Autorisez l’accès à la caméra pour utiliser le photobooth.', true);
             bDeclencher.disabled = true;
@@ -447,12 +456,20 @@
         const montage = await composer(poses);
         composee = montage.toDataURL('image/jpeg', 0.9);
 
+        // Télécharger sans passer par l'e-mail : un fichier, pas une adresse
+        // data: (Safari les ouvre au lieu de les enregistrer).
+        montage.toBlob((b) => {
+            bTelecharger.href = URL.createObjectURL(b);
+            bTelecharger.download = `photobooth-${Date.now()}.jpg`;
+        }, 'image/jpeg', 0.92);
+
         apercu.src = composee;
         apercu.hidden = false;
         flux.hidden = true;
         if (cadreEl) cadreEl.hidden = true;
 
         bRecommencer.hidden = false;
+        bTelecharger.hidden = false;
         bValider.hidden = false;
         occupe = false;
     }
@@ -463,6 +480,9 @@
         flux.hidden = false;
         if (cadreEl) cadreEl.hidden = false;
         bRecommencer.hidden = true;
+        bTelecharger.hidden = true;
+        if (bTelecharger.href) URL.revokeObjectURL(bTelecharger.href);
+        bTelecharger.removeAttribute('href');
         bValider.hidden = true;
         bDeclencher.hidden = false;
         dire('');
@@ -519,7 +539,41 @@
         demarrerCamera();
     });
 
-    analyserCadre();
+    /*
+     * La scène prend exactement la hauteur qui reste une fois placés le
+     * titre, le formulaire et les boutons : tout tient à l'écran, du plus
+     * petit téléphone à la tablette.
+     */
+    function ajusterScene() {
+        const actions = document.getElementById('booth-actions');
+        // La barre basse du téléphone, mesurée telle qu'affichée (absente
+        // sur ordinateur).
+        const barre = document.querySelector('.barre-basse');
+        // (Elle est en position fixe : offsetParent n'y dit rien, on lit son affichage.)
+        const basse = barre && getComputedStyle(barre).display !== 'none' ? Math.max(0, innerHeight - barre.getBoundingClientRect().top) : 0;
+        const haut = scene.getBoundingClientRect().top + scrollY;
+        const dessous = actions.getBoundingClientRect().bottom - scene.getBoundingClientRect().bottom;
+        const reserve = haut + dessous + basse + 14;
+        scene.style.setProperty('--booth-reserve', `${Math.max(160, reserve)}px`);
+    }
+    addEventListener('resize', ajusterScene);
+    ajusterScene();
+
+    // Le formulaire change de hauteur après coup : polices chargées, texte
+    // qui passe à la ligne. On recalcule à chaque fois, sinon les boutons
+    // glissent sous la barre du bas.
+    document.fonts?.ready.then(ajusterScene);
+    addEventListener('load', ajusterScene);
+    if (window.ResizeObserver) {
+        let attente = null;
+        const surveille = new ResizeObserver(() => {
+            cancelAnimationFrame(attente);
+            attente = requestAnimationFrame(ajusterScene);
+        });
+        [...document.querySelectorAll('#booth > :not(.booth-scene)')].forEach((el) => surveille.observe(el));
+    }
+
+    analyserCadre().then(ajusterScene);
     demarrerCamera();
 })();
 </script>

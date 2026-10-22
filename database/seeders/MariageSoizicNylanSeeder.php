@@ -47,7 +47,10 @@ class MariageSoizicNylanSeeder extends Seeder
      * Les moments affichés au programme. Mairie et soirée restent en base,
      * éteints : les rallumer suffit si le couple change d'avis.
      */
-    private const MOMENTS = ['ceremonie', 'vin-honneur', 'diner'];
+    private const MOMENTS = ['ceremonie', 'diner'];
+
+    /** Les heures confirmées par le couple, en heure de Martinique. */
+    private const HORAIRES = ['ceremonie' => '14:00', 'diner' => '19:00'];
 
     /**
      * Notre histoire : le poème du couple, une strophe par étape de la
@@ -80,11 +83,19 @@ Ont trouvé leur écho, sincères, doux et beaux.",
         ],
         [
             'date'  => 'Décembre 2023',
-            'titre' => 'Officiel, puis promis',
+            'titre' => 'C’est officiel',
             'texte' => "Quelques mois ont passé, puis vint le premier jour,
-Et décembre a rendu officiel leur amour.
-L’automne suivant, un pacs, une promesse,
-Puis une demande, un oui plein de tendresse.",
+Et décembre a rendu officiel leur amour.",
+        ],
+        [
+            'date'  => '2024',
+            'titre' => 'Le PACS',
+            'texte' => 'L’automne suivant, un pacs, une promesse,',
+        ],
+        [
+            'date'  => '2025',
+            'titre' => 'La demande',
+            'texte' => 'Puis une demande, un oui plein de tendresse.',
         ],
         [
             'date'  => 'Juin 2026',
@@ -108,10 +119,10 @@ Ils se diront le oui le plus tendre et plus doux.",
      * photo de l'époque restent sans image.
      */
     private const PHOTOS_HISTOIRE = [
-        3 => 'photo-02.jpg',   // 2023, le selfie
-        4 => 'photo-09.jpg',   // Décembre 2023, à deux dans l'eau
-        5 => 'photo-01.jpg',   // Swann
-        6 => 'photo-04.jpg',   // Le oui : en tenue, sous les guirlandes
+        3 => 'photo-02.jpg',            // 2023, le selfie
+        4 => 'photo-09.jpg',            // Décembre 2023, à deux dans l'eau
+        7 => 'photo-01-histoire.jpg',   // Swann : recadrée en paysage, les trois visibles
+        8 => 'photo-04.jpg',            // Le oui : en tenue, sous les guirlandes
     ];
 
     // Les cinq places du puzzle : deux portraits, puis la séance au bord de l'eau.
@@ -155,8 +166,8 @@ Ils se diront le oui le plus tendre et plus doux.",
     /** La cérémonie : l'église Saint-Thomas, dans le bourg du Diamant. */
     private const CEREMONIE = ['lieu_nom' => 'Église Saint-Thomas', 'lieu_adresse' => 'Bourg du Diamant, 97223 Le Diamant'];
 
-    /** Le contact du jour J. */
-    private const CONTACT_JOUR = ['contact_nom' => 'Alvee', 'contact_telephone' => '+596 696 35 29 85'];
+    /** Pas de contact affiché le jour J : le bloc disparaît des infos pratiques. */
+    private const CONTACT_JOUR = ['contact_nom' => null, 'contact_telephone' => null];
 
     /** Le « Qui de nous 2 » se fera en animation, pas sur le site. */
     private const JEUX = ['quiz', 'puzzle', 'mots_croises'];
@@ -352,7 +363,13 @@ Ils se diront le oui le plus tendre et plus doux.",
     private function choisirMoments(): void
     {
         foreach (EventPart::all() as $partie) {
-            $partie->update(['actif' => in_array($partie->cle, self::MOMENTS, true)]);
+            $donnees = ['actif' => in_array($partie->cle, self::MOMENTS, true)];
+
+            if (isset(self::HORAIRES[$partie->cle])) {
+                $donnees['debut_at'] = \Illuminate\Support\Carbon::parse('2026-10-24 ' . self::HORAIRES[$partie->cle], self::FUSEAU)->utc();
+            }
+
+            $partie->update($donnees);
         }
 
         $this->command?->info('  Programme : ' . implode(', ', self::MOMENTS) . '.');
@@ -440,7 +457,7 @@ Ils se diront le oui le plus tendre et plus doux.",
 
         $event->ecrireReglages('pratique', self::CONTACT_JOUR);
 
-        $this->command?->info('  Infos pratiques : ' . count(self::HEBERGEMENTS) . ' hébergements, parking, contact du jour J, église.');
+        $this->command?->info('  Infos pratiques : ' . count(self::HEBERGEMENTS) . ' hébergements, parking, église, sans contact du jour J.');
     }
 
     /** Copie une photo dans le stockage du mariage, comme un dépôt du couple. */
