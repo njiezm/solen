@@ -32,6 +32,24 @@
         <g class="pieces"></g>
         @include('jeux.partials.puzzle-pieces')
     </svg>
+    {{-- Pendant que le puzzle se prépare : un cœur qui bat, et une phrase
+         sur l'amour tirée au hasard à chaque partie. --}}
+    @php
+        $phrases = [
+            'Le bonheur se construit à deux, pièce par pièce.',
+            'Aimer, c’est choisir l’autre chaque jour.',
+            'Deux cœurs, une seule histoire.',
+            'Ensemble, tout trouve sa place.',
+            'Chaque souvenir est une pièce du puzzle.',
+            'Le plus beau voyage se fait à deux.',
+            'L’amour, c’est le plus beau des assemblages.',
+            'Un oui, et tout s’emboîte.',
+        ];
+    @endphp
+    <div class="puzzle-chargement" role="status" aria-live="polite">
+        <span class="puzzle-chargeur" aria-hidden="true"><i class="fa-solid fa-heart"></i></span>
+        <p>{{ \Illuminate\Support\Arr::random($phrases) }}</p>
+    </div>
 </div>
 
 {{-- Confirmation de « Résoudre », aux couleurs du mariage plutôt que la

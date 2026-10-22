@@ -1168,11 +1168,33 @@ textarea.form-control, textarea.saisie { min-height: 120px; resize: vertical; }
 .puzzle { opacity: 0; transition: opacity .35s ease; }
 .puzzle.pret { opacity: 1; }
 .puzzle-cadre { position: relative; }
-.puzzle-cadre:has(.puzzle:not(.pret))::before {
-    content: 'Préparation du puzzle…';
-    position: absolute; inset: 0; display: grid; place-items: center;
-    font-size: .9rem; color: var(--c-sur-page-doux);
+.puzzle-chargement {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.1rem;
+    padding: 1.5rem; text-align: center;
+    transition: opacity .35s ease;
 }
+.puzzle.pret ~ .puzzle-chargement { opacity: 0; pointer-events: none; }
+.puzzle-chargement p {
+    margin: 0; max-width: 16rem;
+    font-family: var(--f-titre); font-size: clamp(1.3rem, 5.5vw, 1.7rem); line-height: 1.3;
+    color: var(--c-sur-page);
+}
+/* Un anneau qui tourne, un cœur qui bat. */
+.puzzle-chargeur {
+    position: relative; display: grid; place-items: center;
+    width: 64px; height: 64px; color: var(--c-accent); font-size: 1.4rem;
+}
+.puzzle-chargeur::before {
+    content: ''; position: absolute; inset: 0; border-radius: 50%;
+    border: 3px solid color-mix(in srgb, var(--c-accent) 20%, transparent);
+    border-top-color: var(--c-accent);
+    animation: chargeur-tourne .9s linear infinite;
+}
+.puzzle-chargeur i { animation: chargeur-bat 1.1s ease-in-out infinite; }
+@keyframes chargeur-tourne { to { transform: rotate(360deg); } }
+@keyframes chargeur-bat { 0%, 100% { transform: scale(1); } 15% { transform: scale(1.22); } 30% { transform: scale(1); } 45% { transform: scale(1.14); } }
+@media (prefers-reduced-motion: reduce) { .puzzle-chargeur::before, .puzzle-chargeur i { animation: none; } }
 .puzzle .piece { cursor: grab; }
 .puzzle .piece:active { cursor: grabbing; }
 
