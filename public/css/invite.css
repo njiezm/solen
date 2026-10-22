@@ -1163,7 +1163,10 @@ textarea.form-control, textarea.saisie { min-height: 120px; resize: vertical; }
     background: var(--c-voile);
     color: var(--c-sur-page);
 }
-.puzzle { display: block; width: 100%; height: 100%; overflow: visible; touch-action: none; user-select: none; }
+.puzzle { display: block; width: 100%; height: 100%; overflow: visible; touch-action: pan-y; user-select: none; }
+/* Seules les pièces captent le doigt : partout ailleurs dans le cadre, il
+   fait défiler la page, sans quoi un puzzle plein écran l'immobiliserait. */
+.puzzle .piece, .puzzle .piece * { touch-action: none; }
 /* Invisible tant qu'il n'est pas prêt (voir puzzle.js), puis en fondu. */
 .puzzle { opacity: 0; transition: opacity .35s ease; }
 .puzzle.pret { opacity: 1; }
