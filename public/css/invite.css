@@ -1152,8 +1152,11 @@ textarea.form-control, textarea.saisie { min-height: 120px; resize: vertical; }
 /* --- Puzzle --- */
 .puzzle-barre { display: flex; align-items: center; justify-content: space-between; gap: .75rem; margin-bottom: .75rem; }
 .puzzle-barre strong { font-variant-numeric: tabular-nums; }
+/* La hauteur disponible est mesurée par le script de la page (en-tête,
+   barre du jeu, barre basse) ; 220 px n'est qu'une estimation de départ. */
+.puzzle-barre { scroll-margin-top: calc(var(--h-entete) + .6rem); }
 .puzzle-cadre {
-    width: min(100%, 420px, calc((100svh - 220px) * .55));
+    width: min(100%, 420px, calc(var(--puzzle-hauteur, calc(100svh - 220px)) * .55));
     aspect-ratio: 220 / 400;
     margin-inline: auto;
     border-radius: var(--r-carte);
@@ -1161,6 +1164,15 @@ textarea.form-control, textarea.saisie { min-height: 120px; resize: vertical; }
     color: var(--c-sur-page);
 }
 .puzzle { display: block; width: 100%; height: 100%; overflow: visible; touch-action: none; user-select: none; }
+/* Invisible tant qu'il n'est pas prêt (voir puzzle.js), puis en fondu. */
+.puzzle { opacity: 0; transition: opacity .35s ease; }
+.puzzle.pret { opacity: 1; }
+.puzzle-cadre { position: relative; }
+.puzzle-cadre:has(.puzzle:not(.pret))::before {
+    content: 'Préparation du puzzle…';
+    position: absolute; inset: 0; display: grid; place-items: center;
+    font-size: .9rem; color: var(--c-sur-page-doux);
+}
 .puzzle .piece { cursor: grab; }
 .puzzle .piece:active { cursor: grabbing; }
 

@@ -59,6 +59,32 @@
 
 @push('scripts')
 <script>window.puzzleConfig = { image: @json($image) };</script>
+<script>
+(() => {
+    // On arrive directement sur le jeu : la barre du puzzle se cale sous
+    // l'en-tête, et le cadre prend exactement la hauteur qui reste, quelle
+    // que soit la taille du téléphone. Plus rien à faire défiler.
+    const barreJeu = document.querySelector('.puzzle-barre');
+    const cadre = document.querySelector('.puzzle-cadre');
+
+    const ajuster = () => {
+        const entete = document.getElementById('entete')?.getBoundingClientRect().height ?? 0;
+        const basse = document.querySelector('.barre-basse');
+        const bas = basse && getComputedStyle(basse).display !== 'none' ? Math.max(0, innerHeight - basse.getBoundingClientRect().top) : 0;
+        const dispo = innerHeight - entete - bas - barreJeu.offsetHeight - 30;
+        cadre.style.setProperty('--puzzle-hauteur', `${Math.max(260, dispo)}px`);
+    };
+
+    const caler = () => {
+        ajuster();
+        // Seulement à l'arrivée, et si l'invité n'a pas déjà défilé lui-même.
+        if (scrollY < 40) barreJeu.scrollIntoView({ block: 'start', behavior: 'smooth' });
+    };
+
+    addEventListener('resize', ajuster);
+    if (document.readyState === 'complete') caler(); else addEventListener('load', caler);
+})();
+</script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/Draggable.min.js"></script>
 <script src="{{ asset('js/puzzle.js') }}?v={{ filemtime(public_path('js/puzzle.js')) }}"></script>

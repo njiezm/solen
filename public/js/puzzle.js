@@ -241,5 +241,12 @@ document.addEventListener('DOMContentLoaded', () => {
         entries.push({ piece, shadow, draggable });
     });
 
+    // Le puzzle n'apparaît qu'une fois ses pièces placées et la photo
+    // chargée : sinon on voit d'abord les formes brutes, noires et
+    // entassées. Un filet de sécurité le montre de toute façon.
+    const pret = () => puzzle.classList.add('pret');
+    document.getElementById('imgSrc')?.addEventListener('load', pret, { once: true });
+    setTimeout(pret, 3000);
+
     gsap.set('#imgSrc', { attr: { href: config.image } });
 });
