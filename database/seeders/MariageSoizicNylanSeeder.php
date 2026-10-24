@@ -500,6 +500,10 @@ Ils se diront le oui le plus tendre et plus doux.",
     {
         $event->ecrireReglages('jeux', ['actifs' => self::JEUX]);
 
+        // Le quiz se joue en direct, pendant l'animation : l'animateur lance
+        // chaque question depuis son lien secret (console du mariage).
+        $event->ecrireReglages('jeux', ['quiz_direct' => true]);
+
         // Le quiz, au format du jeu : la bonne réponse est l'indice 0.
         $event->ecrireReglages('jeux', ['quiz' => array_map(fn ($q) => [
             'sujet' => $q[0], 'question' => $q[1], 'choix' => $q[2], 'bonne' => 0,

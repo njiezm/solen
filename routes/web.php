@@ -207,6 +207,15 @@ Route::prefix('console')
 | signatures de contrôleur, et le réinjecte dans route() — les vues écrivent
 | donc route('galerie.index') sans jamais manipuler le slug.
 */
+// Le pupitre de l'animateur du quiz en direct : un lien secret, sans compte
+// ni code d'accès (il sert même si le site est encore en brouillon).
+Route::prefix('mariage/{event}/quiz/animateur/{jeton}')->middleware('event')->where(['jeton' => '[A-Za-z0-9]{32}'])->group(function () {
+    Route::get('/', [\App\Http\Controllers\QuizDirectController::class, 'animateur'])->name('quiz.animateur');
+    Route::get('/etat', [\App\Http\Controllers\QuizDirectController::class, 'animateurEtat'])->name('quiz.animateur.etat');
+    Route::get('/ecran', [\App\Http\Controllers\QuizDirectController::class, 'ecran'])->name('quiz.ecran');
+    Route::post('/commande', [\App\Http\Controllers\QuizDirectController::class, 'commande'])->name('quiz.animateur.commande');
+});
+
 Route::prefix('mariage/{event}')->middleware(['event', 'acces'])->group(function () {
 
     // Le code d'accès, quand les mariés en ont choisi un.
@@ -273,6 +282,11 @@ Route::prefix('mariage/{event}')->middleware(['event', 'acces'])->group(function
     // Jeux : ouverts d'office dès que les mariés les ont cochés.
     Route::get('/jeux/quiz', [JeuxController::class, 'quiz'])->name('jeux.quiz');
     Route::post('/jeux/quiz', [JeuxController::class, 'submitQuiz'])->name('jeux.submitQuiz');
+
+    // Quiz en direct : les téléphones suivent l'animateur.
+    Route::get('/jeux/quiz/direct', [\App\Http\Controllers\QuizDirectController::class, 'etat'])->name('quiz.direct.etat');
+    Route::post('/jeux/quiz/direct/joueur', [\App\Http\Controllers\QuizDirectController::class, 'joueur'])->name('quiz.direct.joueur');
+    Route::post('/jeux/quiz/direct/repondre', [\App\Http\Controllers\QuizDirectController::class, 'repondre'])->middleware('throttle:60,1')->name('quiz.direct.repondre');
 
     Route::get('/jeux/qui-de-nous-2', [JeuxController::class, 'quiDeux'])->name('jeux.quiDeux');
     Route::post('/jeux/qui-de-nous-2', [JeuxController::class, 'submitQuiDeux'])->name('jeux.submitQuiDeux');

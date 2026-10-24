@@ -78,6 +78,14 @@ class JeuxController extends Controller
             return $attente;
         }
 
+        // En direct, c'est l'animateur qui fait défiler les questions.
+        if (app(\App\Solen\QuizDirect::class)->actif($this->event())) {
+            return view('jeux.quiz-direct', [
+                'prenoms' => $this->jeux->prenoms($this->event()),
+                'joueur'  => $this->jeux->joueurConnu(),
+            ]);
+        }
+
         // Les propositions sont mélangées à l'affichage : la bonne réponse
         // n'est pas toujours la première saisie par les mariés.
         $questions = $this->jeux->quizPret($this->event())->map(fn ($q) => $q + [

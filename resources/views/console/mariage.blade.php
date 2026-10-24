@@ -58,6 +58,20 @@
                 <a href="{{ route('espace.modules', $mariage->slug) }}" class="mini">Modules</a>
             </div>
         </div>
+        @if ($lienQuiz)
+            <div class="ligne">
+                <span class="icone"><i class="fa-solid fa-circle-question" aria-hidden="true"></i></span>
+                <div class="corps">
+                    <strong id="url-quiz">{{ $lienQuiz }}</strong>
+                    <span>pupitre de l’animateur du quiz en direct — à ne donner qu’à lui</span>
+                </div>
+                <div class="outils">
+                    <button class="mini" data-copier="url-quiz">Copier</button>
+                    <a href="{{ $lienQuiz }}" target="_blank" rel="noopener" class="mini">Ouvrir</a>
+                    <a href="{{ $lienQuiz }}/ecran" target="_blank" rel="noopener" class="mini">Écran</a>
+                </div>
+            </div>
+        @endif
         <div class="ligne">
             <span class="icone"><i class="fa-solid fa-file-export" aria-hidden="true"></i></span>
             <div class="corps">

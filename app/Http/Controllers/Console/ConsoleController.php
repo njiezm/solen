@@ -89,6 +89,9 @@ class ConsoleController extends Controller
             'photosGalerie' => Photo::pourEvenement($event)->where('path', 'not like', '%/photobooth/%')->count(),
             'photosBooth'   => Photo::pourEvenement($event)->duPhotobooth()->count(),
             'sauvegardes'   => \App\Models\Sauvegarde::where('event_id', $event->id)->latest()->limit(10)->get(),
+            // Le pupitre de l'animateur, quand le quiz se joue en direct.
+            'lienQuiz'      => app(\App\Solen\CurrentEvent::class)->pretend($event, fn () => app(\App\Solen\QuizDirect::class)->actif($event)
+                ? app(\App\Solen\QuizDirect::class)->lienAnimateur($event) : null),
         ]);
     }
 }
