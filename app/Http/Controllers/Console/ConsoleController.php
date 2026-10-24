@@ -90,8 +90,13 @@ class ConsoleController extends Controller
             'photosBooth'   => Photo::pourEvenement($event)->duPhotobooth()->count(),
             'sauvegardes'   => \App\Models\Sauvegarde::where('event_id', $event->id)->latest()->limit(10)->get(),
             // Le pupitre de l'animateur, quand le quiz se joue en direct.
-            'lienQuiz'      => app(\App\Solen\CurrentEvent::class)->pretend($event, fn () => app(\App\Solen\QuizDirect::class)->actif($event)
-                ? app(\App\Solen\QuizDirect::class)->lienAnimateur($event) : null),
+            // Le quiz en direct : toujours proposé quand le mariage a des jeux,
+            // pour l'activer d'ici sans dépendre d'un seeder.
+            'quizDirect'    => $event->aModule('jeux') ? app(\App\Solen\CurrentEvent::class)->pretend($event, fn () => [
+                'actif' => app(\App\Solen\QuizDirect::class)->actif($event),
+                'lien'  => app(\App\Solen\QuizDirect::class)->lienAnimateur($event),
+                'questions' => app(\App\Solen\Jeux::class)->quizPret($event)->count(),
+            ]) : null,
         ]);
     }
 }

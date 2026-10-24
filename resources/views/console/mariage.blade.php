@@ -58,17 +58,32 @@
                 <a href="{{ route('espace.modules', $mariage->slug) }}" class="mini">Modules</a>
             </div>
         </div>
-        @if ($lienQuiz)
+        @if ($quizDirect)
+            {{-- Quiz en direct : l'animateur enchaîne les questions, les
+                 téléphones suivent, l'écran projette les résultats. --}}
             <div class="ligne">
                 <span class="icone"><i class="fa-solid fa-circle-question" aria-hidden="true"></i></span>
                 <div class="corps">
-                    <strong id="url-quiz">{{ $lienQuiz }}</strong>
-                    <span>pupitre de l’animateur du quiz en direct — à ne donner qu’à lui</span>
+                    <strong>Quiz en direct {{ $quizDirect['actif'] ? '— activé' : '— désactivé' }}</strong>
+                    <span>
+                        {{ $quizDirect['questions'] }} question(s) prête(s).
+                        @if ($quizDirect['actif'])
+                            Pupitre de l’animateur (à ne donner qu’à lui) : <span id="url-quiz" style="word-break:break-all">{{ $quizDirect['lien'] }}</span>
+                        @else
+                            Les invités jouent chacun à leur rythme. Activez le direct pour que l’animateur enchaîne les questions.
+                        @endif
+                    </span>
                 </div>
                 <div class="outils">
-                    <button class="mini" data-copier="url-quiz">Copier</button>
-                    <a href="{{ $lienQuiz }}" target="_blank" rel="noopener" class="mini">Ouvrir</a>
-                    <a href="{{ $lienQuiz }}/ecran" target="_blank" rel="noopener" class="mini">Écran</a>
+                    @if ($quizDirect['actif'])
+                        <button class="mini" data-copier="url-quiz">Copier</button>
+                        <a href="{{ $quizDirect['lien'] }}" target="_blank" rel="noopener" class="mini">Pupitre</a>
+                        <a href="{{ $quizDirect['lien'] }}/ecran" target="_blank" rel="noopener" class="mini">Écran</a>
+                    @endif
+                    <form method="POST" action="{{ route('console.mariage.quiz', $mariage->slug) }}">
+                        @csrf
+                        <button class="mini">{{ $quizDirect['actif'] ? 'Désactiver' : 'Activer le direct' }}</button>
+                    </form>
                 </div>
             </div>
         @endif

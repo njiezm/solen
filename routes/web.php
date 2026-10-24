@@ -153,6 +153,7 @@ Route::prefix('console')
         Route::delete('/mariages/{slug}', [MariageController::class, 'supprimer'])->name('mariage.supprimer');
         Route::post('/mariages/{slug}/vider/{quoi}', [MariageController::class, 'vider'])->whereIn('quoi', ['jeux', 'galerie', 'photobooth'])->name('mariage.vider');
         Route::post('/mariages/{slug}/corbeille/{id}', [MariageController::class, 'restaurer'])->whereNumber('id')->name('mariage.restaurer');
+        Route::post('/mariages/{slug}/quiz-direct', [MariageController::class, 'basculerQuizDirect'])->name('mariage.quiz');
         // Exports aux couleurs du mariage : albums, livre d'or, souvenir, jeux, photos.
         Route::get('/mariages/{slug}/exports', [\App\Http\Controllers\Console\ExportsController::class, 'index'])->name('mariage.exports');
         Route::get('/mariages/{slug}/exports/photos.zip', [\App\Http\Controllers\Console\ExportsController::class, 'zip'])->name('mariage.exports.zip');

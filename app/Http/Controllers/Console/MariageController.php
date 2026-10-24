@@ -133,6 +133,19 @@ class MariageController extends Controller
             . 'Restaurable pendant ' . \App\Models\Sauvegarde::DUREE_JOURS . ' jours depuis la corbeille.');
     }
 
+    /** Passe le quiz en direct, ou le rend aux invités (chacun son rythme). */
+    public function basculerQuizDirect(string $slug): RedirectResponse
+    {
+        $event = Event::where('slug', $slug)->firstOrFail();
+        $actif = ! (bool) $event->reglage('jeux', 'quiz_direct', false);
+
+        app(\App\Solen\CurrentEvent::class)->pretend($event, fn () => $event->ecrireReglages('jeux', ['quiz_direct' => $actif]));
+
+        return back()->with('ok', $actif
+            ? 'Quiz en direct activé : copiez le lien du pupitre pour l’animateur, et ouvrez l’écran sur le projecteur.'
+            : 'Quiz en direct désactivé : les invités jouent chacun à leur rythme.');
+    }
+
     public function restaurer(string $slug, int $id): RedirectResponse
     {
         $event = Event::where('slug', $slug)->firstOrFail();
