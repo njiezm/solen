@@ -29,6 +29,10 @@
 
     <div id="pu-question"></div>
 
+    {{-- La question suivante, visible du seul animateur avant qu'il la lance :
+         il a l'intitulé et la bonne réponse sous les yeux pour l'annoncer. --}}
+    <div class="pu-suivante" id="pu-suivante" hidden></div>
+
     <div class="pu-actions" id="pu-actions"></div>
 
     <details class="pu-plus">
@@ -60,6 +64,11 @@
         background: linear-gradient(to top, var(--c-carte) 75%, transparent);
     }
     .pu-actions .bouton { justify-content: center; font-size: 1.1rem; padding: 1rem; }
+    .pu-suivante { margin-top: 1.2rem; padding: .9rem 1rem; border: 2px dashed var(--c-bord); border-radius: var(--r-carte); background: var(--c-voile); }
+    .pu-suivante .pu-numero { color: var(--c-sur-carte-doux); }
+    .pu-suivante .texte { font-weight: 700; font-size: 1.05rem; margin: .35rem 0 .5rem; }
+    .pu-suivante ul { margin: 0; padding-left: 1.1rem; font-size: .95rem; }
+    .pu-suivante li.bonne { color: #1E5E3E; font-weight: 700; }
     .pu-plus { margin-top: 1.5rem; font-size: .9rem; }
     .pu-plus summary { cursor: pointer; color: var(--c-sur-carte-doux); }
     .pu-liste { display: flex; flex-wrap: wrap; gap: .4rem; margin: .8rem 0; }
@@ -87,8 +96,23 @@
         return `<button type="button" class="bouton ${plein ? 'bouton--plein' : 'bouton--contour'}" data-action="${action}" ${index !== null ? `data-index="${index}"` : ''}>${libelle}</button>`;
     }
 
+    // Aperçu d'une question, réservé au pupitre : intitulé et bonne réponse.
+    function apercu(i, titre) {
+        const bloc = document.getElementById('pu-suivante');
+        const q = quiz[i];
+        if (!q) { bloc.hidden = true; return; }
+        bloc.hidden = false;
+        bloc.innerHTML = `<p class="pu-numero">${titre} · Question ${i + 1} / ${quiz.length} · ${echapper(q.sujet)}</p>
+            <p class="texte">${echapper(q.question)}</p>
+            <ul>${q.choix.map((c, j) => `<li class="${j === q.bonne ? 'bonne' : ''}">${echapper(c)}${j === q.bonne ? ' ✓ bonne réponse' : ''}</li>`).join('')}</ul>`;
+    }
+
     function afficher(e) {
         etat = e;
+        // À l'attente : la 1re. Question révélée : la suivante. Sinon, rien.
+        if (e.etat === 'attente') apercu(0, 'À lancer');
+        else if (e.etat === 'reponse') apercu(e.index + 1, 'À suivre');
+        else apercu(-1);
         const libelles = { attente: 'En attente', question: 'Question ouverte', reponse: 'Réponse révélée', fin: 'Terminé' };
         document.getElementById('pu-etat').textContent = libelles[e.etat] || e.etat;
         document.getElementById('pu-joueurs').textContent = `${e.joueurs} joueur${e.joueurs > 1 ? 's' : ''}`;
