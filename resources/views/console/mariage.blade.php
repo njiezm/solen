@@ -59,6 +59,16 @@
             </div>
         </div>
         <div class="ligne">
+            <span class="icone"><i class="fa-solid fa-file-export" aria-hidden="true"></i></span>
+            <div class="corps">
+                <strong>Exports</strong>
+                <span>albums, livre d’or, livre souvenir et jeux en PDF, photos d’origine</span>
+            </div>
+            <div class="outils">
+                <a href="{{ route('console.mariage.exports', $mariage->slug) }}" class="mini">Ouvrir</a>
+            </div>
+        </div>
+        <div class="ligne">
             <span class="icone"><i class="fa-solid fa-timeline" aria-hidden="true"></i></span>
             <div class="corps">
                 <strong>Programme du jour J</strong>
