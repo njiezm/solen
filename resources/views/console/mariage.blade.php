@@ -80,9 +80,15 @@
                         <a href="{{ $quizDirect['lien'] }}" target="_blank" rel="noopener" class="mini">Pupitre</a>
                         <a href="{{ $quizDirect['lien'] }}/ecran" target="_blank" rel="noopener" class="mini">Écran</a>
                     @endif
-                    <form method="POST" action="{{ route('console.mariage.quiz', $mariage->slug) }}">
+                    {{-- Coché : l'animateur enchaîne les questions. Décoché : chacun
+                         joue à son rythme. Enregistré dès qu'on bascule. --}}
+                    <form method="POST" action="{{ route('console.mariage.quiz', $mariage->slug) }}" style="display:flex; align-items:center; gap:.45rem">
                         @csrf
-                        <button class="mini">{{ $quizDirect['actif'] ? 'Désactiver' : 'Activer le direct' }}</button>
+                        <span style="font-size:.8rem; font-weight:600">En direct</span>
+                        <label class="interrupteur" title="Quiz en direct, piloté par l’animateur">
+                            <input type="checkbox" @checked($quizDirect['actif']) onchange="this.form.submit()" aria-label="Quiz en direct">
+                            <span></span>
+                        </label>
                     </form>
                 </div>
             </div>

@@ -81,7 +81,7 @@
     const pu = document.getElementById('pu');
     const quiz = JSON.parse(pu.dataset.quiz);
     const echapper = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-    let etat = null, cleActions = '';
+    let etat = null, cleActions = '', choisie = null;
 
     async function envoyer(action, index = null) {
         const r = await fetch(pu.dataset.commande, {
@@ -110,7 +110,15 @@
     function afficher(e) {
         etat = e;
         // À l'attente : la 1re. Question révélée : la suivante. Sinon, rien.
-        if (e.etat === 'attente') apercu(0, 'À lancer');
+        if (choisie !== null) {
+            apercu(choisie, 'Choisie');
+            const actions = document.getElementById('pu-actions');
+            if (cleActions !== `choisie-${choisie}`) {
+                cleActions = `choisie-${choisie}`;
+                actions.innerHTML = bouton(`▶ Lancer la question ${choisie + 1}`, 'lancer', choisie)
+                    + bouton('Annuler', 'annuler', null, false);
+            }
+        } else if (e.etat === 'attente') apercu(0, 'À lancer');
         else if (e.etat === 'reponse') apercu(e.index + 1, 'À suivre');
         else apercu(-1);
         const libelles = { attente: 'En attente', question: 'Question ouverte', reponse: 'Réponse révélée', fin: 'Terminé' };
@@ -123,7 +131,7 @@
 
         if (e.etat === 'attente') {
             zone.innerHTML = `<p>Quand tout le monde a ouvert le quiz, lancez la première question.</p>`;
-            if (cleActions !== 'attente') { cleActions = 'attente'; actions.innerHTML = bouton('▶ Lancer la question 1', 'lancer', 0); }
+            if (choisie === null && cleActions !== 'attente') { cleActions = 'attente'; actions.innerHTML = bouton('▶ Lancer la question 1', 'lancer', 0); }
         } else if (e.etat === 'fin') {
             zone.innerHTML = `<p class="pu-numero">Classement du quiz</p>` + (e.classement.length
                 ? `<ol class="pu-classement">${e.classement.map((c) => `<li><strong>${echapper(c.nom)}</strong> — ${c.bonnes ?? 0} / ${quiz.length}</li>`).join('')}</ol>`
@@ -145,7 +153,7 @@
             const derniere = e.index >= quiz.length - 1;
             // Les boutons ne sont redessinés que si l'étape change : un tap
             // pendant un rafraîchissement ne doit jamais se perdre.
-            if (cleActions === `${e.etat}-${e.index}`) return;
+            if (choisie !== null || cleActions === `${e.etat}-${e.index}`) return;
             cleActions = `${e.etat}-${e.index}`;
             actions.innerHTML = e.etat === 'question'
                 ? bouton('Révéler la réponse', 'reveler')
@@ -153,14 +161,20 @@
         }
 
         const liste = document.getElementById('pu-liste');
-        if (!liste.childElementCount) liste.innerHTML = quiz.map((_, i) => bouton(String(i + 1), 'lancer', i, false)).join('');
+        if (!liste.childElementCount) liste.innerHTML = quiz.map((_, i) => bouton(String(i + 1), 'choisir', i, false)).join('');
     }
 
     pu.addEventListener('click', (ev) => {
         const b = ev.target.closest('[data-action]');
         if (!b) return;
         if (b.dataset.confirmer && !confirm(b.dataset.confirmer)) return;
-        envoyer(b.dataset.action, b.dataset.index !== undefined ? +b.dataset.index : null);
+        const action = b.dataset.action;
+        // Choisir une question : aperçu d'abord, lancement sur confirmation.
+        if (action === 'choisir') { choisie = +b.dataset.index; cleActions = ''; afficher(etat); document.getElementById('pu-suivante').scrollIntoView({ block: 'center', behavior: 'smooth' }); return; }
+        if (action === 'annuler') { choisie = null; cleActions = ''; afficher(etat); return; }
+        if (action === 'lancer') choisie = null;
+        cleActions = '';
+        envoyer(action, b.dataset.index !== undefined ? +b.dataset.index : null);
     });
 
     const interroger = async () => {
