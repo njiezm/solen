@@ -169,6 +169,24 @@ Ils se diront le oui le plus tendre et plus doux.",
     /** Pas de contact affiché le jour J : le bloc disparaît des infos pratiques. */
     private const CONTACT_JOUR = ['contact_nom' => null, 'contact_telephone' => null];
 
+    /**
+     * Le quiz des témoins : cinq questions sur chacun. La bonne réponse est
+     * toujours la première saisie ; le jeu mélange les propositions à
+     * l'affichage. Secret pour les mariés : il ne passe que par ce seeder.
+     */
+    private const QUIZ = [
+        ['Soizic', 'Dans quel clip Soizic fait-elle une apparition ?', ['Fire - Jayanai King', 'Comme si - Easy Kennenga', 'Kraze Kay La - Paille']],
+        ['Soizic', 'Dans quel pays est-elle partie le plus loin, seule ?', ['Australie', 'Japon', 'Vietnam']],
+        ['Soizic', 'Quel était le nom de son MSN ?', ['Beautiful Lady 972', 'Douceur des îles 972', 'Chabine 972']],
+        ['Soizic', 'Combien de tatouages a-t-elle ?', ['4', '5', '3']],
+        ['Soizic', 'Où était son premier job ?', ['Pizza plus', 'Duty Free', 'Mcdonald\'s']],
+        ['Nylan', 'Quel était le pseudo de Nylan au collège ?', ['Batazindien_972', 'Colaps_972', 'Couli_972']],
+        ['Nylan', 'Combien de voitures a-t-il déjà eues ?', ['5', '4', '3']],
+        ['Nylan', 'Dans quels sports a-t-il fait de la compétition ?', ['Judo & Natation', 'Boxe & Football', 'Tennis & Athlétisme']],
+        ['Nylan', 'Comment écrit-on son deuxième prénom ?', ['Ervyn', 'Ervin', 'Erwyn']],
+        ['Nylan', 'En quelle année a-t-il intégré Dousinn\' ?', ['2015', '2016', '2017']],
+    ];
+
     /** Le « Qui de nous 2 » se fera en animation, pas sur le site. */
     private const JEUX = ['quiz', 'puzzle', 'mots_croises'];
 
@@ -481,6 +499,11 @@ Ils se diront le oui le plus tendre et plus doux.",
     private function reglerJeux(Event $event): void
     {
         $event->ecrireReglages('jeux', ['actifs' => self::JEUX]);
+
+        // Le quiz, au format du jeu : la bonne réponse est l'indice 0.
+        $event->ecrireReglages('jeux', ['quiz' => array_map(fn ($q) => [
+            'sujet' => $q[0], 'question' => $q[1], 'choix' => $q[2], 'bonne' => 0,
+        ], self::QUIZ)]);
 
         // La grille du couple prime : on ne pose la nôtre que sur une
         // grille vide, ou déjà la nôtre.
